@@ -38,7 +38,7 @@
   (mount/stop #'socn.db.core/*db*)
   (mount/start #'socn.db.core/*db*)
   (binding [*ns* (the-ns 'socn.db.core)]
-    (conman/bind-connection socn.db.core/*db* "sql/queries.sql")))
+    (socn.db.core/bind-db)))
 
 (defn reset-db
   "Resets database."

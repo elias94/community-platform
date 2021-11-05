@@ -2,10 +2,10 @@
   (:require [hiccup.core :refer [html]]
             [ring.util.anti-forgery :refer [anti-forgery-field]]))
 
-(defn view []
+(defn view [& _]
   (html
-   [:section.section
-    [:div.container
+   [:div.container
+    [:div.content
      [:h1.title "Submit"]
      [:div.block
       [:form {:method "post" :action "submit"}

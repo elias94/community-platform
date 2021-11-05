@@ -1,12 +1,17 @@
 (ns socn.views.utils
   (:require [clojure.string :as string]
-            [socn.utils :refer [trunc]]))
+            [socn.utils :refer [trunc]]
+            [java-time :as t]))
 
 (defn class-names [classes]
   (string/join " " classes))
 
 (defn plural [n s]
-  (when (> n 1) (str s "s")))
+  (str n " " (if (not= n 1) (str s "s") s)))
+
+(defn age [ts k]
+  (let [interval (t/interval ts (t/instant))]
+    (t/as interval k)))
 
 (defn text-age [mins]
   (str 

@@ -1,11 +1,13 @@
-(ns socn.routes.submit
-  (:require [clojure.string :as string]
+(ns socn.routes.actions
+  (:require [clojure.spec.alpha :as s]
+            [clojure.string :as string]
             [socn.layout :as layout]
+            [socn.utils :as utils]
             [socn.db.core :as db]
-            [conman.core :as conman]
             [socn.middleware :as middleware]
             [ring.util.response :refer [redirect]]
-            [socn.routes.common :refer [with-template]]))
+            [socn.routes.common :refer [with-template]]
+            [socn.controllers.items :as items-controller]))
 
 (defn domain-name
   "Extract the domain from the url."
@@ -21,9 +23,10 @@
    {:content (with-template req "submit")}))
 
 (defn submit-item [{:keys [params session]}]
-  (let [{{user-id :id} :identity} session
+  (let [{{user-id :id} :identity}   session
         {:keys [title url content]} params]
-    (let [item-id (db/create-item!
+    ;; TODO Test input or try/catch
+    (let [item-id (items-controller/create-item!
                    {:author    user-id
                     :score     0
                     :submitted (java.util.Date.)
@@ -33,10 +36,25 @@
                     :title     title})]
       (redirect (str "/item?id=" item-id)))))
 
-(defn submit-routes []
+(defn submit-comment [{:keys [params session]}]
+  (let [{{user-id :id} :identity}     session
+        {:keys [comment item parent]} params]
+    (items-controller/create-comment!
+     {:author    user-id
+      :item      (if (string? item)
+                   (utils/parse-int item)
+                   item)
+      :content   comment
+      :score     1
+      :parent    parent
+      :submitted (java.util.Date.)})
+    (redirect (str "/item?id=" item))))
+
+(defn actions-routes []
   [""
    {:middleware [middleware/wrap-csrf
                  middleware/wrap-formats
                  middleware/wrap-restricted]}
-   ["/submit" {:get submit-page
-               :post submit-item}]])
+   ["/submit"  {:get submit-page
+                :post submit-item}]
+   ["/comment" {:post submit-comment}]])

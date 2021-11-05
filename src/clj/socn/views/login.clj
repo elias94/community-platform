@@ -6,42 +6,40 @@
 
 (defn view [& {:keys [error error-signup username]}]
   (html
-   [:section.section
-    [:div.container
-     (when error
-       (notification error))
-     [:h1.title "Login"]
-     [:div.block
-      [:form {:method "post" :action "login"}
-       [:div.field
+   [:div.container
+    [:div.content
+     [:section.section
+      (when error
+        (notification error))
+      [:h1.title "Login"]
+      [:form.form {:method "post" :action "login"}
+       [:div.form-field
         [:div.control
-         (form/text-field {:class "input"
-                           :placeholder "Username"
-                           :value username}
-                          "username")]]
-       [:div.field
+         [:input.form-input {:name "username"
+                             :placeholder "Username"
+                             :value username}]]]
+       [:div.form-field
         [:div.control
-         (form/password-field {:class "input" :placeholder "Password"}
-                              "password")]]
+         [:input.form-input {:name "password"
+                             :type "password"
+                             :placeholder "Password"}]]]
        (anti-forgery-field)
-       (form/submit-button {:class "button is-info" :name "submit"}
-                           "Login")]]
-     [:div.block
-      [:a {:href "/register"} "forgot your password?"]]]
-    [:div.container
-     (when error-signup
-       (notification error-signup))
-     [:h1.title "Create Account"]
-     [:div.block
-      [:form {:method "post" :action "signup"}
-       [:div.field
+       [:button.form-button {:name "submit"} "Login"]]
+      [:div
+       [:a.link {:href "/reset-password"} "forgot your password?"]]]
+     [:section.section
+      (when error-signup
+        (notification error-signup))
+      [:h1.title "Create Account"]
+      [:form.form {:method "post" :action "signup"}
+       [:div.form-field
         [:div.control
-         (form/text-field {:class "input" :placeholder "Username"}
-                          "username")]]
-       [:div.field
+         [:input.form-input {:name "username"
+                             :placeholder "Username"}]]]
+       [:div.form-field
         [:div.control
-         (form/password-field {:class "input" :placeholder "Password"}
-                              "password")]]
+         [:input.form-input {:name "password"
+                             :type "password"
+                             :placeholder "Password"}]]]
        (anti-forgery-field)
-       (form/submit-button {:class "button is-info" :name "submit"}
-                           "Sign up")]]]]))
+       [:button.form-button {:name "submit"} "Sign up"]]]]]))

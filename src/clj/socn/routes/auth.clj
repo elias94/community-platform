@@ -8,28 +8,14 @@
             [socn.middleware :as middleware]
             [ring.util.response :refer [redirect]]
             [socn.routes.common :refer [default-page]]
+            [socn.controllers.users :as user-controller]
             [buddy.hashers :as hashers]
             [buddy.auth :refer [authenticated?]]))
-
-;; Default hashing algorithm for password store
-(def hash-config {:alg :bcrypt+blake2b-512})
 
 (defn login-page [req]
   (if (authenticated? req)
     (redirect "/")
     (default-page req "login")))
-
-(defn create-user! [id password]
-  (conman/with-transaction [db/*db*]
-    (if (empty? (db/get-user {:id id}))
-      (do (db/create-user!
-           {:id       id
-            :password (hashers/derive password hash-config)
-            :created  (java.util.Date.)
-            :karma    1
-            :showall  false})
-          (db/get-user {:id id}))
-      (throw (ex-info "User already present" {:id id})))))
 
 (defn handle-login
   "Check the request for username and password
@@ -62,7 +48,7 @@
       (default-page req "login" {:error-signup "Wrong username length."})
 
       :else ; create the new record and redirect to homepage
-      (let [user (create-user! (:username params) (:password params))]
+      (let [user (user-controller/create-user! {:id username :password password})]
           (-> (redirect "/")
               (assoc :session (assoc session :identity (dissoc user :password))))))))
 

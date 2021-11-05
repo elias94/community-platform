@@ -37,3 +37,9 @@ WHERE id = :id
 -- :doc deletes a user record given the id
 DELETE FROM users
 WHERE id = :id
+
+-- :name update-user-info! :! :n
+-- :doc updates user about, email and showall
+UPDATE users
+SET about = :about, email = :email, showall = :showall
+WHERE id = :id
