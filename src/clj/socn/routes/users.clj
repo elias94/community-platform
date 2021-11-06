@@ -7,7 +7,8 @@
             [socn.routes.common :refer [with-template]]
             [buddy.auth :refer [authenticated?]]
             [socn.layout :refer [error-page]]
-            [socn.controllers.users :as users-controller]))
+            [socn.utils :as utils]
+            [socn.controllers.core :as controller]))
 
 (defn user-page [{:keys [params session] :as req}]
   (let [{:keys [id]} params
@@ -27,10 +28,12 @@
 (defn update-user [{:keys [params session] :as req}]
   (if (authenticated? req)
     (let [{{:keys [id]} :identity} session
-          user (users-controller/update-user! (assoc params :id id))]
-      (-> (redirect (str "/user?id=" id))
+          conv-params (utils/parse-bool-map params :showall)]
+      (controller/update! "user" (assoc conv-params :id id))
+      (let [user (db/get-user {:id id})]
+        (-> (redirect (str "/user?id=" id))
           ;; update the identity into the current session
-          (assoc :session (assoc session :identity (dissoc user :password)))))
+            (assoc :session (assoc session :identity (dissoc user :password))))))
     (error-page {:status 401, :title "401 - Unauthorized"})))
 
 (defn users-routes []

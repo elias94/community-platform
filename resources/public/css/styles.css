@@ -134,6 +134,27 @@ body {
   color: #fff;
 }
 
+.footer {
+  width: 100%;
+  margin: 20px 0;
+}
+.footer > div {
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  font-family: Ubuntu Mono, Consolas, Menlo, monospace;
+  font-size: 12px;
+}
+.footer .link {
+  color: #9CA3AF;
+}
+.footer .link:hover {
+  text-decoration: none;
+  color: #6B7280;
+}
+
 .news {
   margin: 7.5px 0;
   display: grid;
@@ -188,11 +209,15 @@ body {
 }
 
 .item-comment {
-  margin: 30px 0;
+  margin: 30px 0 0 0;
 }
 .item-comment > form {
   display: inline-flex;
   flex-direction: column;
+}
+
+.comments {
+  margin-top: 30px;
 }
 
 .comment-content {

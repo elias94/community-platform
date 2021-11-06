@@ -22,6 +22,7 @@
   (conman/bind-connection *db*
                           "sql/users.sql"
                           "sql/items.sql"
+                          "sql/votes.sql"
                           "sql/comments.sql"))
 
 (bind-db)

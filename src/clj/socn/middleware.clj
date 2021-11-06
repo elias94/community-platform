@@ -8,6 +8,7 @@
    [muuntaja.middleware :refer [wrap-format wrap-params]]
    [socn.config :refer [env]]
    [ring.middleware.flash :refer [wrap-flash]]
+   [ring.util.response :refer [redirect]]
    [ring.adapter.undertow.middleware.session :refer [wrap-session]]
    [ring.middleware.defaults :refer [site-defaults wrap-defaults]]
    [buddy.auth.middleware :refer [wrap-authentication]]
@@ -23,7 +24,7 @@
         (log/error t (.getMessage t))
         (error-page {:status 500
                      :title "Something very bad has happened!"
-                     :message "We've dispatched a team of highly trained gnomes to take care of the problem."})))))
+                     :message "We've dispatched a team of highly trained gnomes to take care of the problem. for you"})))))
 
 (defn wrap-csrf [handler]
   (wrap-anti-forgery
@@ -38,11 +39,14 @@
       ;; since they're not compatible with this middleware
       ((if (:websocket? request) handler wrapped) request))))
 
+(defn on-error [_ _]
+  ;; when not authenticated, redirect to login page
+  (redirect "/login"))
+
 (defn wrap-restricted [handler]
   (restrict handler
             {:handler authenticated?
-             :on-error (error-page {:status 403
-                                    :title "403 - Not authorized"})}))
+             :on-error on-error}))
 
 (defn wrap-base [handler]
   (-> ((:middleware defaults) handler)

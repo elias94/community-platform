@@ -72,3 +72,14 @@
             :item/title
             :item/domain
             :item/submitted]))
+
+(s/def :vote/author    string?)
+(s/def :vote/item      int?)
+(s/def :vote/type      char?)
+(s/def :vote/submitted inst?)
+(s/def :vote/create!
+  (s/keys
+   :req-un [:vote/author
+            :vote/item
+            :vote/submitted
+            :vote/type]))

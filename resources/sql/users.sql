@@ -3,6 +3,7 @@
 INSERT INTO users
 (id, password, created, karma, showall)
 VALUES (:id, :password, :created, :karma, :showall)
+RETURNING id
 
 -- :name update-user-password! :! :n
 -- :doc updates user password

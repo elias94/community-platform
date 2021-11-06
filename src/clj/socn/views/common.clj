@@ -2,7 +2,30 @@
   (:require [hiccup.core :refer [html]]
             [socn.views.utils :refer [class-names]]
             [socn.config :refer [env]]
-            [buddy.auth :refer [authenticated?]]))
+            [buddy.auth :refer [authenticated?]]
+            [ring.util.codec :refer [url-encode]]))
+
+(defn upvote
+  "Upvote component for item and comment."
+  ([item]
+   (let [url (str "/vote?id="
+                  (:id item)
+                  "&type=item&dir=up&goto="
+                  (url-encode (str "/item?id=" (:id item))))]
+     [:a.arrow-vote
+      {:title "Upvote"
+       :href  url}]))
+  ([comment item]
+   (let [url (str "/vote?id="
+                  (:id comment)
+                  "&type=comment&dir=up&goto="
+                  (url-encode (str "/item?id="
+                                   (:id item)
+                                   "#"
+                                   (:id comment))))]
+     [:a.arrow-vote
+      {:title "Upvote comment"
+       :href  url}])))
 
 (defn navbar-item
   "Navbar menu item, highlighted if is the current path."
@@ -32,6 +55,16 @@
             [:span.navbar-user (str id " (" karma ")")]
             (navbar-item "logout" route)])
          (navbar-item "login" route))]]]]))
+
+(defn footer
+  "Footer component for the page template."
+  []
+  (html
+   [:footer.footer
+    [:div
+     [:a.link {:href "/guidelines"} "Guidelines"]
+     [:a.link {:href "/faq"}        "FAQ"]
+     [:a.link {:href "/about"}      "About"]]]))
 
 (defn notification
   "Displays a notification message."

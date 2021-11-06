@@ -2,7 +2,16 @@
   (:require [hiccup.core :refer [html]]
             [ring.util.anti-forgery :refer [anti-forgery-field]]
             [socn.views.utils :refer [plural age text-age]]
+            [socn.views.common :as common]
             [buddy.auth :refer [authenticated?]]))
+
+(defn author?
+  "Return true if the current user is the author of the comment."
+  [{:keys [author]}           ; comment
+   {:keys [session] :as req}] ; req
+  (and (authenticated? req)
+       (let [{{:keys [id]} :identity} session]
+         (= id author))))
 
 (defn item-desc [news]
   (let [{:keys [id score author submitted]} news]
@@ -47,23 +56,26 @@
     [:div
      [:button {:type "submit"} "Comment"]]]])
 
-(defn comment-view [{:keys [author content submitted score]}]
-  [:div.comment
-   [:div.comment-content
-    [:span.arrow-vote {:title "Upvote comment"}]
-    [:div.comment-header
-     [:span (str (plural score "point")
-                 " by "
-                 author
-                 " "
-                 (text-age (age submitted :minutes)))]
-     [:span " | prev | next | edit | delete [-]"]]]
-   [:div.comment-content
-    [:span]
-    [:span content]]
-   [:div.comment-content
-    [:span]
-    [:a.link "reply"]]])
+(defn comment-view [{:keys [id author content submitted score] :as comment} req]
+  (let [own (author? comment req)]
+    [:div.comment {:id id}
+     [:div.comment-content
+      (if-not own
+        (common/upvote comment)
+        [:span "*"])
+      [:div.comment-header
+       [:span (str (plural score "point")
+                   " by "
+                   author
+                   " "
+                   (text-age (age submitted :minutes)))]
+       [:span " | prev | next | edit | delete [-]"]]]
+     [:div.comment-content
+      [:span]
+      [:span content]]
+     [:div.comment-content
+      [:span]
+      [:a.link "reply"]]]))
 
 (defn view [& {:keys [item comments req]}]
   (html
@@ -72,5 +84,6 @@
      (item-view (assoc item :comments (count comments)))
      (when (authenticated? req)
        (comment-form item))
-     (for [comment comments]
-       (comment-view comment))]]))
+     [:div.comments
+      (for [comment comments]
+        (comment-view comment req))]]]))

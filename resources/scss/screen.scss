@@ -38,7 +38,7 @@ body {
   height: 40px;
   margin: 0 auto;
   font-size: 12px;
-  font-family: Ubuntu Mono, Consolas, Menlo, monospace;
+  font-family: $font-family-secondary;
 
   & > .container {
     height: 100%;
@@ -100,6 +100,32 @@ body {
   }
 }
 
+.footer {
+  width: 100%;
+  margin: 20px 0;
+
+  & > div {
+    width: 100%;
+
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+
+    font-family: $font-family-secondary;
+    font-size: 12px;
+  }
+
+  .link {
+    color: $color-coolGray-400;
+
+    &:hover {
+      text-decoration: none;
+      color: $color-coolGray-500;
+    }
+  }
+}
+
 .news {
   margin: 7.5px 0;
   display: grid;
@@ -119,7 +145,7 @@ body {
   }
 
   &-footer {
-    color: $color-gray-light;
+    color: $color-coolGray-400;
     font-size: 12px;
   }
 
@@ -131,7 +157,7 @@ body {
   }
 
   &-index {
-    color: $color-gray-light;
+    color: $color-coolGray-400;
     font-size: 14px;
   }
 
@@ -141,7 +167,7 @@ body {
   }
 
   &-info {
-    color: $color-gray-light;
+    color: $color-coolGray-400;
     text-decoration: none;
 
     &:hover {
@@ -155,7 +181,7 @@ body {
   }
 
   &-domain {
-    color: $color-gray-light;
+    color: $color-coolGray-400;
     margin-left: 5px;
     font-size: 12px;
 
@@ -167,13 +193,17 @@ body {
 
 .item {
   &-comment {
-    margin: 30px 0;
+    margin: 30px 0 0 0;
 
     & > form {
       display: inline-flex;
       flex-direction: column;
     }
   }
+}
+
+.comments {
+  margin-top: 30px;
 }
 
 .comment {
@@ -186,7 +216,7 @@ body {
   }
 
   &-header {
-    color: $color-gray-light;
+    color: $color-coolGray-400;
     font-size: 12px;
   }
 
@@ -236,7 +266,7 @@ body {
 }
 
 .help {
-  color: $color-gray-light;
+  color: $color-coolGray-400;
   font-size: 12px;
   margin-top: 5px;
 }
@@ -247,7 +277,7 @@ body {
   border-left: 4.5px solid transparent;
   border-right: 4.5px solid transparent;
 
-  border-bottom: 8px solid $color-gray-light;
+  border-bottom: 8px solid $color-coolGray-400;
   cursor: pointer;
 
   margin: 0 3.5px;
@@ -297,7 +327,7 @@ body {
   }
 
   path {
-    fill: $color-gray-light;
+    fill: $color-coolGray-400;
   }
 
   &:hover path {

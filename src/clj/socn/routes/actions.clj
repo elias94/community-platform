@@ -1,13 +1,11 @@
 (ns socn.routes.actions
-  (:require [clojure.spec.alpha :as s]
-            [clojure.string :as string]
+  (:require [clojure.string :as string]
             [socn.layout :as layout]
             [socn.utils :as utils]
-            [socn.db.core :as db]
             [socn.middleware :as middleware]
             [ring.util.response :refer [redirect]]
             [socn.routes.common :refer [with-template]]
-            [socn.controllers.items :as items-controller]))
+            [socn.controllers.core :as controller]))
 
 (defn domain-name
   "Extract the domain from the url."
@@ -24,22 +22,23 @@
 
 (defn submit-item [{:keys [params session]}]
   (let [{{user-id :id} :identity}   session
-        {:keys [title url content]} params]
-    ;; TODO Test input or try/catch
-    (let [item-id (items-controller/create-item!
-                   {:author    user-id
-                    :score     0
-                    :submitted (java.util.Date.)
-                    :url       url
-                    :domain    (domain-name url)
-                    :content   content
-                    :title     title})]
-      (redirect (str "/item?id=" item-id)))))
+        {:keys [title url content]} params
+        item-id (controller/create!
+                 "item"
+                 {:author    user-id
+                  :score     0
+                  :submitted (java.util.Date.)
+                  :url       url
+                  :domain    (domain-name url)
+                  :content   content
+                  :title     title})]
+    (redirect (str "/item?id=" item-id))))
 
-(defn submit-comment [{:keys [params session]}]
+(defn save-comment [{:keys [params session]}]
   (let [{{user-id :id} :identity}     session
         {:keys [comment item parent]} params]
-    (items-controller/create-comment!
+    (controller/create!
+     "comment"
      {:author    user-id
       :item      (if (string? item)
                    (utils/parse-int item)
@@ -50,6 +49,19 @@
       :submitted (java.util.Date.)})
     (redirect (str "/item?id=" item))))
 
+(defn save-vote [{:keys [params session]}]
+  (let [{{user-id :id} :identity}  session
+        {:keys [id type dir goto]} params]
+    (controller/create!
+     "vote"
+     {:author    user-id
+      :item      (if (string? id)
+                   (utils/parse-int id)
+                   id)
+      :type      (first type)
+      :submitted (java.util.Date.)})
+    (redirect goto)))
+
 (defn actions-routes []
   [""
    {:middleware [middleware/wrap-csrf
@@ -57,4 +69,5 @@
                  middleware/wrap-restricted]}
    ["/submit"  {:get submit-page
                 :post submit-item}]
-   ["/comment" {:post submit-comment}]])
+   ["/comment" {:post save-comment}]
+   ["/vote"    {:get save-vote}]])

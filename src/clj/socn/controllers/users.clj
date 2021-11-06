@@ -23,16 +23,3 @@
         (db/create-user! params)
         (db/get-user {:id id}))
       (throw (ex-info "User already present" {:id id})))))
-
-(defn update-user!
-  "Update the user db record."
-  [params]
-  (let [conv-params (utils/parse-bool-map params :showall)]
-    (if (s/valid? :user/update! conv-params)
-      (conman/with-transaction ; update and retrieve the user in a transaction
-        [db/*db*]
-        (db/update-user-info! conv-params)
-        (db/get-user {:id (:id conv-params)}))
-      (throw (ex-info
-              "Error updating user"
-              {:validation (s/explain-data :user/update! conv-params)})))))

@@ -21,7 +21,8 @@
                       "user"   (apply user/view   ext-args))]
     (when view-render
       (string/join [(common/navbar req page-name)
-                    view-render]))))
+                    view-render
+                    (common/footer)]))))
 
 (defn default-page
   "Default page template for the entire app."

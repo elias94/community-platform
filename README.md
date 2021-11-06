@@ -1,14 +1,9 @@
-# socn
-
-generated using Luminus version "4.20"
-
-FIXME
-
 ## Prerequisites
 
 You will need [Leiningen][1] 2.0 or above installed.
 
 [1]: https://github.com/technomancy/leiningen
+[2]: postgres installed and running
 
 ## Running
 
