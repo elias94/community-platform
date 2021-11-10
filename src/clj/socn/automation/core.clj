@@ -26,13 +26,13 @@
 
 (defn create-comment
   "Create a new comment record in the db."
-  [author item content parent]
+  [author item content parent score]
   (controller/create!
    "comment"
    {:author    author
     :item      (utils/parse-int item)
     :content   content
-    :score     1
+    :score     score
     :parent    (utils/parse-int parent)
     :submitted (java.util.Date.)}))
 
@@ -65,7 +65,8 @@
       ;; create news author
       (create-fake-user author)
       ;; create news record
-      (let [item-id (:id (create-item author link nil title))]
+      (let [item-id (:id (create-item author link nil title))
+            tot     (count comms)]
         (log/info (str "ID: " item-id))
         (log/info (str "HN - Created news \"" title "\" with id: " item-id))
         (doseq [c comms]
@@ -75,13 +76,13 @@
                          (string/replace
                           (html/text content)
                           hn-comment-footer ""))
-                nav     (first (html/select (nth comms 1) [:span.navs :> :a]))
-                child?  (= (html/text nav) "parent")
-                parent  (if child?  (subs ((comp :href :attrs) nav) 1) nil)]
+                navs    (html/select c [:span.navs :> :a])
+                nav     (first (filter #(= (first (:content %)) "parent") navs))
+                parent  (if (not-empty nav) (subs ((comp :href :attrs) nav) 1) nil)]
           ;; create comment author
             (create-fake-user user)
           ;; create comment
-            (create-comment user item-id clean parent))))
+            (create-comment user item-id clean parent (utils/trunc (rand (/ tot 2)))))))
       (log/info "HN - Created comments"))))
 
 (comment
@@ -95,11 +96,12 @@
   ((comp :href :attrs) title) ;url
   (def comms (html/select page [:table.comment-tree :tr.comtr]))
   (count comms)
-  (def c (nth comms 1))
+  (def c (nth comms 2))
   (html/text (first (html/select c [:span.comhead :a.hnuser]))) ; user
   (def content (html/text (first (html/select c [:div.comment])))) ;content
   (string/trim (string/replace content #"                      reply" ""))
   (html/text (first (html/select page [:table.fatitem :a.hnuser]))) ; news author
-  (def nav (first (html/select (nth comms 1) [:span.navs :> :a]))) ; comment header navs
+  (def navs (html/select c [:span.navs :> :a]))
+  (def nav (first (filter #(= (first (:content %)) "parent") navs)))
   (subs ((comp :href :attrs) nav) 1) ; parent id
   )

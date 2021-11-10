@@ -30,5 +30,19 @@
 
 (defn item-score [item votes]
   (let [penalties 1]
-    ( (/ (math/expt (- (count votes) 1) 0.8)
-         (math/expt (+ (age-hours item) 2) gravity)))))
+    ((/ (math/expt (- (count votes) 1) 0.8)
+        (math/expt (+ (age-hours item) 2) gravity)))))
+
+(defn- sort-recur [coll parent]
+  (let [childs (filter #(= (:parent %) parent) coll)
+        sorted (sort-by :score childs)]
+    (if (empty? sorted)
+      nil
+      (into [] (map
+                #(assoc % :children (sort-recur coll (:id %)))
+                sorted)))))
+
+(defn sort-comments
+  "Sort comments by score and parent."
+  [comments]
+  (sort-recur comments nil))
