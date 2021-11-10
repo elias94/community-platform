@@ -1,4 +1,4 @@
--- :name create-comment! :! :n
+-- :name create-comment! :<! :n
 -- :doc creates a new comment record
 INSERT INTO comments
 (author, item, content, submitted, score, parent)

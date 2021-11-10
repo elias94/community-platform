@@ -82,7 +82,7 @@
 (s/def :item/id        int?)
 (s/def :item/author    string?)
 (s/def :item/score     int?)
-(s/def :item/content   string?)
+(s/def :item/content   (s/or :nil nil? :string string?))
 (s/def :item/title     string?)
 (s/def :item/url       ::url)
 (s/def :item/domain    ::domain)
@@ -104,7 +104,7 @@
    :req-un [:item/id
             :item/content
             :item/edited]))
-(s/def :item/delete
+(s/def :item/delete!
   (s/keys :req-un [:item/id]))
 
 

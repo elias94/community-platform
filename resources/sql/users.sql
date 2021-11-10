@@ -1,4 +1,4 @@
--- :name create-user! :! :n
+-- :name create-user! :<! :n
 -- :doc creates a new user record
 INSERT INTO users
 (id, password, created, karma, showall)

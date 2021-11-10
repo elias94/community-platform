@@ -25,10 +25,14 @@
 (defn item-page [{:keys [params] :as req}]
   (if (string/blank? (:id params))
     (redirect "/")
-    (let [id       (utils/parse-int (:id params))
-          item     (db/get-item {:id id})
-          comments (db/get-comments-by-item {:item id :offset 0 :limit 100})]
-      (default-page req "item" :item item :comments comments))))
+    (try
+      (let [id       (utils/parse-int (:id params))
+            item     (db/get-item {:id id})
+            comments (db/get-comments-by-item {:item id :offset 0 :limit 100})]
+        (default-page req "item" :item item :comments comments))
+      (catch Exception _
+        (when-not (:dev env)
+          (redirect "/"))))))
 
 (defn user-page [req]
   (let [{{:keys [id]}       :params

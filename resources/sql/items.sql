@@ -1,4 +1,4 @@
--- :name create-item! :! :n
+-- :name create-item! :<! :1
 -- :doc creates a new item record
 INSERT INTO items
 (author, score, url, submitted, domain, content, title)
@@ -46,8 +46,8 @@ UPDATE items
 SET content = :content, edited = :edited
 WHERE id = :id
 
--- :name delete-item! :! :n
+-- :name delete-item! :! :1
 -- :doc deletes item by id
-DELETE items
+DELETE FROM items
 WHERE id = :id
 

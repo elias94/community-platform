@@ -55,36 +55,33 @@
   "Clone a news and its comments from hn."
   [url]
   (when (valid-hn-url url)
-    (let [id     (last (re-find #"(id=)([0-9]{8})" url))
-          page   (html/html-resource (java.net.URL. url))
+    (let [page   (html/html-resource (java.net.URL. url))
           header (first (html/select page [:td.title :a]))
           title  (html/text header)
           link   ((comp :href :attrs) header)
           author (html/text (first (html/select page [:table.fatitem :a.hnuser])))
           comms  (html/select page [:table.comment-tree :tr.comtr])]
-      (log/info "HN - Extracted page")
+      (log/info "HN - Retrivied page")
       ;; create news author
       (create-fake-user author)
       ;; create news record
-      (try
-        (create-item author link nil title)
-        (catch Exception e
-          (println e)
-          ;; (println (ex-message e) (ex-data e))
-          ))
-      (log/info (str "HN - Created news \"" title "\""))
-      (for [c comms]
-        (let [user    (html/text (html/select c [:span.comhead :a.hnuser]))
-              content (html/select c [:div.comment])
-              text    (doall (map html/text content))
-              clean   (string/trim (string/replace text hn-comment-footer ""))
-              nav     (first (html/select (nth comms 1) [:span.navs :> :a]))
-              child?  (= (html/text nav) "parent")
-              parent  (if child?  (subs ((comp :href :attrs) nav) 1) nil)]
+      (let [item-id (:id (create-item author link nil title))]
+        (log/info (str "ID: " item-id))
+        (log/info (str "HN - Created news \"" title "\" with id: " item-id))
+        (doseq [c comms]
+          (let [user    (html/text (first (html/select c [:span.comhead :a.hnuser])))
+                content (first (html/select c [:div.comment]))
+                clean   (string/trim
+                         (string/replace
+                          (html/text content)
+                          hn-comment-footer ""))
+                nav     (first (html/select (nth comms 1) [:span.navs :> :a]))
+                child?  (= (html/text nav) "parent")
+                parent  (if child?  (subs ((comp :href :attrs) nav) 1) nil)]
           ;; create comment author
-          (create-fake-user user)
+            (create-fake-user user)
           ;; create comment
-          (create-comment user id clean parent)))
+            (create-comment user item-id clean parent))))
       (log/info "HN - Created comments"))))
 
 (comment

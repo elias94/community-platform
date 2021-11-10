@@ -45,6 +45,7 @@
            :domain    (utils/domain-name url)
            :content   content
            :title     title})
+         :id ; query return a map {:id id}
          (str "/item?id=")
          (redirect))))
 
@@ -52,15 +53,17 @@
   (let [{:keys [params session]}      req
         {{user-id :id} :identity}     session
         {:keys [comment item parent]} params]
-    (controller/create!
-     "comment"
-     {:author    user-id
-      :item      (utils/parse-int item)
-      :content   comment
-      :score     1
-      :parent    parent
-      :submitted (java.util.Date.)})
-    (redirect (str "/item?id=" item))))
+    (->> (controller/create!
+          "comment"
+          {:author    user-id
+           :score     1
+           :submitted (java.util.Date.)
+           :content   comment
+           :parent    parent
+           :item      (utils/parse-int item)})
+         :id
+         (str "/item?id=" item "#") ; navigate to comment by id
+         (redirect))))
 
 (defn save-vote [req]
   (let [{:keys [id type dir goto]} (:params req)
