@@ -39,7 +39,7 @@ WHERE id = :id
 DELETE FROM users
 WHERE id = :id
 
--- :name update-user-info! :! :n
+-- :name update-user! :! :n
 -- :doc updates user about, email and showall
 UPDATE users
 SET about = :about, email = :email, showall = :showall

@@ -1,7 +1,8 @@
 (ns socn.views.utils
   (:require [clojure.string :as string]
             [socn.utils :refer [trunc]]
-            [java-time :as t]))
+            [java-time :as t]
+            [buddy.auth :refer [authenticated?]]))
 
 (defn class-names
   "Convert a vector of css class-names in a string."
@@ -32,3 +33,9 @@
      :else          (plural (trunc mins)          "minute"))
    " ago"))
 
+(defn author?
+  "Return true if the current user is the author of the comment."
+  [comment req]
+  (and (authenticated? req)
+       (let [{{:keys [id]} :identity} (:session req)]
+         (= id (:author comment)))))

@@ -1,14 +1,9 @@
 (ns socn.routes.auth
-  (:require [clojure.string :as string]
-            [clojure.pprint :refer [pprint]]
-            [socn.layout :as layout]
-            [socn.db.core :as db]
-            [conman.core :as conman]
-            [clojure.java.io :as io]
+  (:require [socn.db.core :as db]
             [socn.middleware :as middleware]
             [ring.util.response :refer [redirect]]
             [socn.routes.common :refer [default-page]]
-            [socn.controllers.users :as user-controller]
+            [socn.controllers.core :as controller]
             [buddy.hashers :as hashers]
             [buddy.auth :refer [authenticated?]]))
 
@@ -21,18 +16,16 @@
   "Check the request for username and password
   and if present, check the match against the db record."
   [{:keys [params session] :as req}]
-  (let [{:keys [username password]} params
-        valid-params (and (seq username) (seq password))]
-    (if (not valid-params)
-      (default-page req "login" {:error "Empty login fields."})
+  (let [{:keys [username password]} params]
+    (if (and (seq username) (seq password))
       ;; login and redirect
-      (let [user  (db/get-user {:id username})
-            login (and user (hashers/verify password (:password user)))]
-        (if login
+      (let [user (db/get-user {:id username})]
+        (if (and user (hashers/verify password (:password user)))
           (-> (redirect "/")
               (assoc :session (assoc session :identity (dissoc user :password)))) ; set-user!
           (default-page req "login" {:error "Login failed. Wrong username or password."
-                                     :username (:username user)}))))))
+                                     :username username})))
+      (default-page req "login" {:error "Empty login fields."}))))
 
 (defn handle-signup
   "Create a new account is parameters pass
@@ -48,7 +41,7 @@
       (default-page req "login" {:error-signup "Wrong username length."})
 
       :else ; create the new record and redirect to homepage
-      (let [user (user-controller/create-user! {:id username :password password})]
+      (let [user (controller/create-user! {:id username :password password})]
           (-> (redirect "/")
               (assoc :session (assoc session :identity (dissoc user :password))))))))
 

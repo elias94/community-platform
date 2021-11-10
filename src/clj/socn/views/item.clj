@@ -1,17 +1,9 @@
 (ns socn.views.item
   (:require [hiccup.core :refer [html]]
             [ring.util.anti-forgery :refer [anti-forgery-field]]
-            [socn.views.utils :refer [plural age text-age]]
+            [socn.views.utils :refer [plural age text-age author?]]
             [socn.views.common :as common]
             [buddy.auth :refer [authenticated?]]))
-
-(defn author?
-  "Return true if the current user is the author of the comment."
-  [{:keys [author]}           ; comment
-   {:keys [session] :as req}] ; req
-  (and (authenticated? req)
-       (let [{{:keys [id]} :identity} session]
-         (= id author))))
 
 (defn item-desc [news]
   (let [{:keys [id score author submitted]} news]
@@ -25,7 +17,7 @@
 (defn item-view [{:keys [id title domain comments] :as news}]
   [:div.news
    [:div.news-pre
-    [:span.arrow-vote {:title "Upvote"}]]
+    (common/upvote news)]
    [:div.news-header
     [:a.news-link {:href (str "/item?id=" id)}
      [:h1.news-title title]]
@@ -47,12 +39,7 @@
    [:form {:method "post" :action (str "comment?item=" (:id item))}
     (anti-forgery-field)
     [:textarea.textarea {:name "comment" :cols 49 :rows 5}]
-    [:div.markdown-container
-     [:a.markdown {:href "https://docs.github.com/github/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax"
-                   :target "_blank"
-                   :title "Markdown styling supported"}
-      [:svg {:viewBox "0 0 16 16" :height "18"}
-       [:path {:fill-rule "evenodd" :d "M14.85 3H1.15C.52 3 0 3.52 0 4.15v7.69C0 12.48.52 13 1.15 13h13.69c.64 0 1.15-.52 1.15-1.15v-7.7C16 3.52 15.48 3 14.85 3zM9 11H7V8L5.5 9.92 4 8v3H2V5h2l1.5 2L7 5h2v6zm2.99.5L9.5 8H11V5h2v3h1.5l-2.51 3.5z"}]]]]
+    common/markdown-symbol
     [:div
      [:button {:type "submit"} "Comment"]]]])
 
@@ -69,7 +56,11 @@
                    author
                    " "
                    (text-age (age submitted :minutes)))]
-       [:span " | prev | next | edit | delete [-]"]]]
+       [:span " | prev | next | "]
+       (when own
+         [:a.link {:href (str "/edit?id=" id "&type=c") :title "Edit comment"}
+          "edit"])
+       [:span " | delete [-]"]]]
      [:div.comment-content
       [:span]
       [:span content]]

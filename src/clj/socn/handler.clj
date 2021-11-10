@@ -5,7 +5,6 @@
     [socn.routes.home :refer [home-routes]]
     [socn.routes.auth :refer [auth-routes]]
     [socn.routes.actions :refer [actions-routes]]
-    [socn.routes.users :refer [users-routes]]
     [reitit.ring :as ring]
     [ring.middleware.content-type :refer [wrap-content-type]]
     [ring.middleware.webjars :refer [wrap-webjars]]
@@ -22,8 +21,7 @@
     (ring/router
       [(home-routes)
        (auth-routes)
-       (actions-routes)
-       (users-routes)])
+       (actions-routes)])
     (ring/routes
       (ring/create-resource-handler
         {:path "/"})

@@ -13,8 +13,7 @@
                   "&type=item&dir=up&goto="
                   (url-encode (str "/item?id=" (:id item))))]
      [:a.arrow-vote
-      {:title "Upvote"
-       :href  url}]))
+      {:title "Upvote" :href url}]))
   ([comment item]
    (let [url (str "/vote?id="
                   (:id comment)
@@ -24,16 +23,15 @@
                                    "#"
                                    (:id comment))))]
      [:a.arrow-vote
-      {:title "Upvote comment"
-       :href  url}])))
+      {:title "Upvote comment" :href url}])))
 
 (defn navbar-item
   "Navbar menu item, highlighted if is the current path."
   [route-name current-route & {:keys [path]}]
-  (let [route     (or path (str "/" route-name))
-        is-active (= route-name current-route)]
-    [:a {:class (class-names ["navbar-item" (when is-active "active")])
-         :href route}
+  (let [is-active (= route-name current-route)]
+    [:a {:class (class-names ["navbar-item"
+                              (when is-active "active")])
+         :href (or path (str "/" route-name))}
      route-name]))
 
 (defn navbar
@@ -70,3 +68,11 @@
   "Displays a notification message."
   [content]
   [:div.notification content])
+
+(def markdown-symbol
+  [:div.markdown-container
+   [:a.markdown {:href "https://docs.github.com/github/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax"
+                 :target "_blank"
+                 :title "Markdown styling supported"}
+    [:svg {:viewBox "0 0 16 16" :height "18"}
+     [:path {:fill-rule "evenodd" :d "M14.85 3H1.15C.52 3 0 3.52 0 4.15v7.69C0 12.48.52 13 1.15 13h13.69c.64 0 1.15-.52 1.15-1.15v-7.7C16 3.52 15.48 3 14.85 3zM9 11H7V8L5.5 9.92 4 8v3H2V5h2l1.5 2L7 5h2v6zm2.99.5L9.5 8H11V5h2v3h1.5l-2.51 3.5z"}]]]])

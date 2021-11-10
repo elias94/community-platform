@@ -10,7 +10,7 @@
      [:div.container
       [:div.content
        [:div.profile
-        [:form {:method "post" :action "update"}
+        [:form {:method "post" :action "update-user"}
          (anti-forgery-field)
          [:div.grid
           [:span "Username:"]

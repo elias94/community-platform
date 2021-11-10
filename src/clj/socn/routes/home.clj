@@ -1,16 +1,13 @@
 (ns socn.routes.home
   (:require [clojure.spec.alpha :as s]
             [clojure.string :as string]
-            [socn.layout :as layout]
             [socn.db.core :as db]
-            [conman.core :as conman]
-            [clojure.java.io :as io]
             [socn.middleware :as middleware]
             [ring.util.response :refer [redirect]]
-            [socn.routes.common :refer [with-template]]
+            [socn.routes.common :refer [default-page]]
             [socn.config :refer [env]]
             [socn.utils :as utils]
-            [socn.validations :as validations]))
+            [socn.controllers.core :as controller]))
 
 (defn home-page [{:keys [params] :as req}]
   (let [{:keys [site]} params
@@ -23,9 +20,7 @@
 
                     :else
                     (db/get-items-with-comments {:offset 0 :limit page-size}))]
-    (layout/render-page
-     "home.html"
-     {:content (with-template req "home" :items items)})))
+    (default-page req "home" :items items)))
 
 (defn item-page [{:keys [params] :as req}]
   (if (string/blank? (:id params))
@@ -33,11 +28,18 @@
     (let [id       (utils/parse-int (:id params))
           item     (db/get-item {:id id})
           comments (db/get-comments-by-item {:item id :offset 0 :limit 100})]
-      (layout/render-page
-       "home.html"
-       {:content (with-template req "item"
-                   :item item
-                   :comments comments)}))))
+      (default-page req "item" :item item :comments comments))))
+
+(defn user-page [req]
+  (let [{{:keys [id]}       :params
+         {:keys [identity]} :session} req]
+    (if (string/blank? id)
+      (redirect "/")
+      (let [is-user (= id (:id identity))
+            user (if is-user
+                   identity
+                   (dissoc (controller/get "user" {:id id}) :password))]
+        (default-page req "user" :user user :is-user is-user)))))
 
 (defn home-routes []
   [""
@@ -45,5 +47,6 @@
                  middleware/wrap-formats]}
    ["/"       {:get home-page}]
    ["/news"   {:get home-page}]
-   ["/item"   {:get item-page}]])
+   ["/item"   {:get item-page}]
+   ["/user"   {:get user-page}]])
 

@@ -33,3 +33,14 @@ WHERE parent = :parent
 ORDER BY score DESC
 OFFSET :offset
 LIMIT :limit
+
+-- :name update-comment! :! :n
+-- :doc updates comment content
+UPDATE comments
+SET content = :content, edited = :edited
+WHERE id = :id
+
+-- :name delete-comment! :! :n
+-- :doc deletes comment by id
+DELETE comments
+WHERE id = :id

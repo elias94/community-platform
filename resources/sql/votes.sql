@@ -10,13 +10,18 @@ SELECT * FROM votes
 WHERE item = :item
 
 -- :name get-votes-by-author :? :1
--- :doc retrieves votes using offset and limit
+-- :doc retrieves vote records given offset and limit
 SELECT * FROM votes
 WHERE author = :author
 
--- :name exists-vote :? :n
--- :doc check if vote with author and item exists
+-- :name exists-vote? :? :n
+-- :doc check if a vote exists given author and item
 SELECT exists(
   SELECT 1 FROM votes
   WHERE author = :author, item = :item
 )
+
+-- :name delete-vote! :! :n
+-- :doc delete a vote record given author and item
+DELETE FROM votes
+WHERE author = :author, item = :item

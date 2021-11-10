@@ -40,3 +40,14 @@ ORDER BY score DESC
 OFFSET :offset
 LIMIT :limit
 
+-- :name update-item! :! :n
+-- :doc updates item content
+UPDATE items
+SET content = :content, edited = :edited
+WHERE id = :id
+
+-- :name delete-item! :! :n
+-- :doc deletes item by id
+DELETE items
+WHERE id = :id
+
