@@ -1,24 +1,23 @@
 (ns socn.routes.home
   (:require [clojure.spec.alpha :as s]
             [clojure.string :as string]
+            [clojure.tools.logging :as log]
             [socn.db.core :as db]
             [socn.middleware :as middleware]
             [ring.util.response :refer [redirect]]
             [socn.routes.common :refer [default-page]]
             [socn.config :refer [env]]
             [socn.utils :as utils]
-            [socn.controllers.core :as controller]))
+            [socn.controllers.core :as controller]
+            [socn.controllers.items :as item-controller]))
 
 (defn home-page [{:keys [params] :as req}]
   (let [{:keys [site]} params
         page-size (:items-per-page env)
-        items     (cond
-                    (s/valid? :socn.validations/domain site)
+        items     (if (s/valid? :socn.validations/domain site)
                     (db/get-items-with-comments-by-domain {:domain site
                                                            :offset 0
                                                            :limit page-size})
-
-                    :else
                     (db/get-items-with-comments {:offset 0 :limit page-size}))]
     (default-page req "home" :items items)))
 
@@ -28,8 +27,9 @@
     (try
       (let [id       (utils/parse-int (:id params))
             item     (db/get-item {:id id})
-            comments (db/get-comments-by-item {:item id :offset 0 :limit 100})]
-        (default-page req "item" :item item :comments comments))
+            comments (db/get-comments-by-item {:item id :offset 0 :limit 100})
+            sorted   (item-controller/sort-comments comments)]
+        (default-page req "item" :item item :comments sorted))
       (catch Exception _
         (when-not (:dev env)
           (redirect "/"))))))

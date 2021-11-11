@@ -1,5 +1,6 @@
 (ns socn.controllers.items
   (:require [clojure.math.numeric-tower :as math]
+            [java-time :as t]
             [socn.views.utils :refer [age]]))
 
 (def user-changetime 120)
@@ -33,9 +34,17 @@
     ((/ (math/expt (- (count votes) 1) 0.8)
         (math/expt (+ (age-hours item) 2) gravity)))))
 
+(defn- comp-comments 
+  "Compare two comments by score and by date-time submitted."
+  [a b]
+  (let [comp (compare (:score b) (:score a))]
+    (if (= comp 0)
+      (t/after? (:submitted a) (:submitted b))
+      comp)))
+
 (defn- sort-recur [coll parent]
   (let [childs (filter #(= (:parent %) parent) coll)
-        sorted (sort-by :score childs)]
+        sorted (sort comp-comments childs)]
     (if (empty? sorted)
       nil
       (into [] (map
@@ -46,3 +55,4 @@
   "Sort comments by score and parent."
   [comments]
   (sort-recur comments nil))
+

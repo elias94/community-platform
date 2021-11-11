@@ -44,7 +44,9 @@
   #"                      reply")
 
 (defn- valid-hn-url [url]
-  (boolean (re-matches #"^https:\/\/news\.ycombinator\.com\/item\?id=[0-9]{8}$" url)))
+  (boolean (re-matches
+            #"^https:\/\/news\.ycombinator\.com\/item\?id=[0-9]{8}$"
+            url)))
 
 (comment
   (def url "https://news.ycombinator.com/item?id=29139884")
@@ -59,7 +61,8 @@
           header (first (html/select page [:td.title :a]))
           title  (html/text header)
           link   ((comp :href :attrs) header)
-          author (html/text (first (html/select page [:table.fatitem :a.hnuser])))
+          author (html/text (first (html/select page [:table.fatitem
+                                                      :a.hnuser])))
           comms  (html/select page [:table.comment-tree :tr.comtr])]
       (log/info "HN - Retrivied page")
       ;; create news author
@@ -70,7 +73,8 @@
         (log/info (str "ID: " item-id))
         (log/info (str "HN - Created news \"" title "\" with id: " item-id))
         (doseq [c comms]
-          (let [user    (html/text (first (html/select c [:span.comhead :a.hnuser])))
+          (let [user    (html/text (first (html/select c [:span.comhead
+                                                          :a.hnuser])))
                 content (first (html/select c [:div.comment]))
                 clean   (string/trim
                          (string/replace
@@ -78,11 +82,18 @@
                           hn-comment-footer ""))
                 navs    (html/select c [:span.navs :> :a])
                 nav     (first (filter #(= (first (:content %)) "parent") navs))
-                parent  (if (not-empty nav) (subs ((comp :href :attrs) nav) 1) nil)]
+                parent  (if (not-empty nav)
+                          (subs ((comp :href :attrs) nav) 1)
+                          nil)]
           ;; create comment author
             (create-fake-user user)
           ;; create comment
-            (create-comment user item-id clean parent (utils/trunc (rand (/ tot 2)))))))
+            (create-comment
+             user
+             item-id
+             clean
+             parent
+             (utils/trunc (rand (/ tot 2)))))))
       (log/info "HN - Created comments"))))
 
 (comment
