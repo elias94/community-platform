@@ -42,3 +42,10 @@
     (if (string/starts-with? domain "www.")
       (subs domain 4)
       domain)))
+
+(defn get-client-ip
+  "Extract client ip from a http(s) request."
+  [req]
+  (if-let [ips (get-in req [:headers "x-forwarded-for"])]
+    (-> ips (string/split #",") first)
+    (:remote-addr req)))

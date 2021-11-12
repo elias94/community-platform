@@ -3,10 +3,11 @@
             [socn.layout :as layout]
             [socn.views.common :as common]
             [socn.views.login :as login]
-            [socn.views.news :as news]
+            [socn.views.home :as home]
             [socn.views.item :as item]
             [socn.views.user :as user]
             [socn.views.edit :as edit]
+            [socn.views.reply :as reply]
             [socn.views.submit :as submit]))
 
 (defn with-template
@@ -15,12 +16,13 @@
   [req page-name & args]
   (let [ext-args    (concat args (list :req req))
         view-render (case page-name
-                      "home"   (apply news/view   ext-args)
+                      "home"   (apply home/view   ext-args)
                       "login"  (apply login/view  ext-args)
                       "submit" (apply submit/view ext-args)
                       "item"   (apply item/view   ext-args)
                       "user"   (apply user/view   ext-args)
-                      "edit"   (apply edit/view   ext-args))]
+                      "edit"   (apply edit/view   ext-args)
+                      "reply"  (apply reply/view  ext-args))]
     (when view-render
       (string/join [(common/navbar req page-name)
                     view-render

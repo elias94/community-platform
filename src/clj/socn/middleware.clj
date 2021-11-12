@@ -52,7 +52,10 @@
   (-> ((:middleware defaults) handler)
       wrap-flash
       (wrap-authentication (session-backend))
-      (wrap-session {:cookie-attrs {:http-only true}})
+      (wrap-session {:timeout      0
+                     :cookie-name  "user"
+                     :cookie-attrs {:http-only true
+                                    :expires "Mon, 13 Jan 2042 00:00:00 GMT"}})
       (wrap-defaults
        (-> site-defaults
            (assoc-in [:security :anti-forgery] false)

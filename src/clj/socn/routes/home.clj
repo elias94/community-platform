@@ -7,32 +7,57 @@
             [ring.util.response :refer [redirect]]
             [socn.routes.common :refer [default-page]]
             [socn.config :refer [env]]
+            [socn.session :as session]
             [socn.utils :as utils]
             [socn.controllers.core :as controller]
             [socn.controllers.items :as item-controller]))
 
-(defn home-page [{:keys [params] :as req}]
-  (let [{:keys [site]} params
+(defn- item-vote
+  "Return a new map with the boolean key :vote
+  if the user has voted."
+  [item user]
+  (assoc item :voted (controller/exists? "vote" {:author user
+                                                 :item (:id item)})))
+
+(defn- items-vote
+  "Assignt the key :vote for all the items if
+  the user is authenticated."
+  [items req]
+  (if (session/authenticated? req)
+    (let [user (session/auth :id req)]
+      (map #(item-vote % user) items))
+    items))
+
+(defn home-page [req]
+  (let [{{:keys [site]} :params} req
         page-size (:items-per-page env)
         items     (if (s/valid? :socn.validations/domain site)
                     (db/get-items-with-comments-by-domain {:domain site
                                                            :offset 0
-                                                           :limit page-size})
-                    (db/get-items-with-comments {:offset 0 :limit page-size}))]
+                                                           :limit  page-size})
+                    (db/get-items-with-comments {:offset 0
+                                                 :limit  page-size}))
+        items     (items-vote items req)]
     (default-page req "home" :items items)))
 
-(defn item-page [{:keys [params] :as req}]
-  (if (string/blank? (:id params))
-    (redirect "/")
-    (try
-      (let [id       (utils/parse-int (:id params))
-            item     (db/get-item {:id id})
-            comments (db/get-comments-by-item {:item id :offset 0 :limit 100})
-            sorted   (item-controller/sort-comments comments)]
-        (default-page req "item" :item item :comments sorted))
-      (catch Exception _
-        (when-not (:dev env)
-          (redirect "/"))))))
+(defn item-page [req]
+  (let [{{:keys [id]} :params} req
+        user (session/auth :id req)]
+    (if (string/blank? id)
+      (redirect "/")
+      (try
+        (let [id        (utils/parse-int id)
+              item      (db/get-item {:id id})
+              comments  (db/get-comments-by-item {:item id :offset 0
+                                                  :limit  100})
+              sorted        (item-controller/sort-comments comments)
+              comments-vote (items-vote sorted req)]
+          (default-page req "item"
+            :item     (item-vote item user)
+            :comments comments-vote))
+        (catch Exception _
+          (when-not (:dev env)
+            (redirect "/")))))))
 
 (defn user-page [req]
   (let [{{:keys [id]}       :params

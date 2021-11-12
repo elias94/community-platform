@@ -11,31 +11,6 @@
   [len]
   (apply str (take len (repeatedly #(char (+ (rand 26) 65))))))
 
-(defn create-item
-  "Create a new item record in the db."
-  [author url content title]
-  (controller/create!
-   "item"
-   {:author    author
-    :score     0
-    :submitted (java.util.Date.)
-    :url       url
-    :domain    (utils/domain-name url)
-    :content   content
-    :title     title}))
-
-(defn create-comment
-  "Create a new comment record in the db."
-  [author item content parent score]
-  (controller/create!
-   "comment"
-   {:author    author
-    :item      (utils/parse-int item)
-    :content   content
-    :score     score
-    :parent    (utils/parse-int parent)
-    :submitted (java.util.Date.)}))
-
 (defn- create-fake-user [id]
   (when (not (controller/get "user" {:id id}))
     (controller/create-user! {:id id :password (rand-str 8)})))
@@ -68,7 +43,7 @@
       ;; create news author
       (create-fake-user author)
       ;; create news record
-      (let [item-id (:id (create-item author link nil title))
+      (let [item-id (:id (controller/create-item author link nil title))
             tot     (count comms)]
         (log/info (str "ID: " item-id))
         (log/info (str "HN - Created news \"" title "\" with id: " item-id))
@@ -88,7 +63,7 @@
           ;; create comment author
             (create-fake-user user)
           ;; create comment
-            (create-comment
+            (controller/create-comment
              user
              item-id
              clean

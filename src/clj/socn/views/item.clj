@@ -1,8 +1,8 @@
 (ns socn.views.item
   (:require [hiccup.core :refer [html]]
             [ring.util.anti-forgery :refer [anti-forgery-field]]
-            [socn.views.utils :refer [plural age text-age author?]]
-            [socn.views.common :as common]
+            [socn.views.utils :refer [plural age text-age author? encode-url]]
+            [socn.views.common :as common :refer [with-sep]]
             [buddy.auth :refer [authenticated?]]))
 
 (defn item-desc [news]
@@ -43,11 +43,12 @@
     [:div
      [:button {:type "submit"} "Comment"]]]])
 
-(defn comment-view [{:keys [id author content submitted score] :as comment} req]
-  (let [own (author? comment req)]
+(defn comment-view [comment req lvl]
+  (let [{:keys [id author content submitted score]} comment
+        owned (author? comment req)]
     [:div.comment {:id id}
      [:div.comment-content
-      (if-not own
+      (if-not owned
         (common/upvote comment)
         [:span "*"])
       [:div.comment-header
@@ -56,17 +57,30 @@
                    author
                    " "
                    (text-age (age submitted :minutes)))]
-       [:span " | prev | next | "]
-       (when own
-         [:a.link {:href (str "/edit?id=" id "&type=c") :title "Edit comment"}
-          "edit"])
-       [:span " | delete [-]"]]]
+       [:span " | prev | next"]
+       (when owned
+         (with-sep
+           [:a.link {:href (str "/edit?id=" id "&type=c") :title "Edit comment"}
+            "edit"]))
+       (when owned
+         (with-sep
+           [:a.link {:href (encode-url "delete" {:id id :type "c"})
+                     :title "Delete comment"}
+            "delete"]))]]
      [:div.comment-content
       [:span]
       [:span content]]
      [:div.comment-content
       [:span]
-      [:a.link "reply"]]]))
+      [:div
+       [:a.link {:href (encode-url "reply" {:id id})}
+        "reply"]]]]))
+
+(defn comment-with-sub [comment req lvl]
+  (list
+   (comment-view comment req lvl)
+   (doseq [c (:children comment)]
+     (comment-with-sub c req (inc lvl)))))
 
 (defn view [& {:keys [item comments req]}]
   (html
@@ -77,4 +91,4 @@
        (comment-form item))
      [:div.comments
       (for [comment comments]
-        (comment-view comment req))]]]))
+        (comment-with-sub comment req 0))]]]))

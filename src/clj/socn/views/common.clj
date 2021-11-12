@@ -1,29 +1,47 @@
 (ns socn.views.common
   (:require [hiccup.core :refer [html]]
-            [socn.views.utils :refer [class-names]]
-            [socn.config :refer [env]]
+            [socn.views.utils :refer [class-names encode-url]]
             [buddy.auth :refer [authenticated?]]
             [ring.util.codec :refer [url-encode]]))
+
+(defmacro with-sep
+  "Prepend a | separator with spaces."
+  [& expr]
+  `(list
+    [:span " | "]
+    ~@expr))
 
 (defn upvote
   "Upvote component for item and comment."
   ([item]
-   (let [url (str "/vote?id="
-                  (:id item)
-                  "&type=item&dir=up&goto="
-                  (url-encode (str "/item?id=" (:id item))))]
-     [:a.arrow-vote
-      {:title "Upvote" :href url}]))
+   (let [url (encode-url
+              "vote"
+              {:id (:id item)
+               :type "item"
+               :dir "up"
+               :goto (url-encode (encode-url
+                                  "item"
+                                  {:id (:id item)}))})]
+     (if (:voted item)
+       [:span]
+       [:a.arrow-vote
+        {:title "Upvote" :href url
+         :onclick "return vote(event, this)"}])))
   ([comment item]
-   (let [url (str "/vote?id="
-                  (:id comment)
-                  "&type=comment&dir=up&goto="
-                  (url-encode (str "/item?id="
-                                   (:id item)
-                                   "#"
-                                   (:id comment))))]
-     [:a.arrow-vote
-      {:title "Upvote comment" :href url}])))
+   (let [url (encode-url
+              "vote"
+              {:id (:id comment)
+               :type "comment"
+               :dir "up"
+               :goto (url-encode (encode-url
+                                  "item"
+                                  {:id (:id item)}
+                                  (:id comment)))})]
+     (if (:voted comment)
+       [:span]
+       [:a.arrow-vote
+        {:title "Upvote comment" :href url
+         :onclick "return vote(event, this)"}]))))
 
 (defn navbar-item
   "Navbar menu item, highlighted if is the current path."

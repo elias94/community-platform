@@ -1,5 +1,6 @@
-(ns socn.views.news
+(ns socn.views.home
   (:require [hiccup.core :refer [html]]
+            [socn.views.common :as common]
             [socn.views.utils :refer [plural age text-age]]))
 
 (defn news-desc [news]
@@ -17,7 +18,7 @@
     [:div.news
      [:div.news-pre
       [:span.news-index (str (+ index 1) ".")]
-      [:span.arrow-vote {:title "Upvote"}]]
+      (common/upvote news)]
      [:div.news-header
       [:a.news-link {:href (str "/item?id=" id)}
        [:h1.news-title (:title news)]]

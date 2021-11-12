@@ -3,6 +3,36 @@
             [java-time :as t]
             [socn.views.utils :refer [age]]))
 
+;;;;;;;;;;;;;;;;;;;
+;; thresholds
+;;;;;;;;;;;;;;;;;;;
+(def downvote-threshold* 100)
+(def downvote-time* 1440)
+(def flag-threshold* 30)
+(def flag-kill-threshold* 7)
+(def many-flags* 1)
+; Un-flagging something doesn't unkill it, if it's now no longer
+; over flag-kill-threshold.  Ok, since arbitrary threshold anyway.
+(defn flag-link [])
+(defn kill-link [])
+
+;; Turn this on when SPAM becomes a problem
+(def enforce-oversubmitting false)
+
+; New user can't submit more than 2 stories in a 2 hour period.
+; Give overeager users the key toofast to make limit permanent.
+
+;; (defn oversubmitting [user ip kind (o url)] 
+;;   (and enforce-oversubmit*
+;;        (or (check-key user 'toofast)
+;;            (ignored user)
+;;            (< (user-age user) new-age-threshold*)
+;;            (< (karma user) new-karma-threshold*))
+;;        (len> (recent-items [or (author user _) (is _!ip ip)] 180)
+;;              (if (is kind 'story)
+;;                (if (ignored user) 0 1)
+;;                (if (ignored user) 1 10)))))
+
 (def user-changetime 120)
 
 (defn author? [user item]

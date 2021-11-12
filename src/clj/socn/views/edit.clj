@@ -3,8 +3,8 @@
             [hiccup.form :as form]
             [ring.util.codec :refer [form-encode]]
             [ring.util.anti-forgery :refer [anti-forgery-field]]
-            [socn.views.common :as common]
-            [socn.views.utils :refer [plural text-age age author?]]
+            [socn.views.common :as common :refer [with-sep]]
+            [socn.views.utils :refer [plural text-age age author? encode-url]]
             [socn.utils :refer [in?]]))
 
 (def comment-opts
@@ -14,7 +14,7 @@
    :context
    :edit
    :delete
-   :ref   ; reference to the original item
+   :on
    :reply])
 
 (defn comment-view
@@ -38,18 +38,16 @@
      ;; extra actions
      (when (and (in? opts :parent)
                 (int? parent))
-       (list
-        [:span " | "]
-        [:a.link {:href (str "/comment?id=" parent)} "parent"]))
+       (with-sep
+         [:a.link {:href (encode-url "comment" {:id parent})} "parent"]))
      (when (in? opts :context)
-       (list
-        [:span " | "]
-        [:a.link {:href (str "/item?id=" (:id item) "#" id)} "context"]))
+       (with-sep
+         [:a.link {:href (encode-url "item" {:id (:id item)} id)}
+          "context"]))
      (when (in? opts :delete)
-       (list
-        [:span " | "]
-        [:a.link {:href (str "/delete?id=" id)} "delete"]))
-     (when (in? opts :ref)
+       (with-sep
+         [:a.link {:href (encode-url "delete" {:id id})} "delete"]))
+     (when (in? opts :on)
        (list
         [:span " | on: "]
         [:a.link {:href (str "/item?id=" (:id item))} (:title item)]))]]
@@ -69,20 +67,21 @@
      (if (= type :comment)
        (comment-view
         item
-        [:upvote :parent :context :delete :ref]
+        [:upvote :parent :context :delete :on]
         :req req))
      [:div.item-form
       [:form {:method "post"
-              :action (str "update?"
-                           (form-encode
-                            {:id   (:id item)
-                             :type (second (str type))
-                             :goto (str "/item?id="
-                                        (if (= type :comment)
-                                          (str (:id (:item item))
-                                               "#"
-                                               (:id item))
-                                          (:id item)))}))}
+              :action (encode-url
+                       "update?"
+                       {:id   (:id item)
+                        :type (second (str type))
+                        :goto (let [is-comment (= type :comment)]
+                                ;; encode url /item?id=12#245 if type is :comment
+                                (encode-url
+                                 "item"
+                                 {:id (get (if is-comment (:item item) item)
+                                           :id)}
+                                 (when is-comment (:id item))))})}
        (anti-forgery-field)
        [:textarea.textarea {:name "content" :cols 49 :rows 5}
         (:content item)]

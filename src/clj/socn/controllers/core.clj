@@ -3,7 +3,8 @@
   (:require [clojure.spec.alpha :as s]
             [buddy.hashers :as hashers]
             [socn.validations]
-            [socn.db.core :as db]))
+            [socn.db.core :as db]
+            [socn.utils :as utils]))
 
 ;; Default hashing algorithm for password store
 (def ^:private hash-config {:alg :bcrypt+blake2b-512})
@@ -47,7 +48,8 @@
   "Check if exist the record of the specified entity.
   It performs a validation of the params."
   [entity params]
-  (db-action "extists" entity params :mark "?"))
+  (-> (db-action "exists" entity params :mark "?")
+      :exists))
 
 (defn create-user!
   "Create a new user record in the db hashing the password."
@@ -58,7 +60,43 @@
                 :created  (java.util.Date.)
                 :karma    1
                 :showall  false}]
+    ;; check if user exists and params validation
     (if (and (nil? (db/get-user {:id id}))
              (s/valid? :user/create! params))
       (db/create-user! params)
       (throw (ex-info "User already present" {:id id})))))
+
+(defn create-item
+  "Create a new item record in the db."
+  [author url content title]
+  (create!
+   "item"
+   {:author    author
+    :score     0
+    :submitted (java.util.Date.)
+    :url       url
+    :domain    (utils/domain-name url)
+    :content   content
+    :title     title}))
+
+(defn create-comment
+  "Create a new comment record in the db."
+  [author item content parent score]
+  (create!
+   "comment"
+   {:author    author
+    :item      (utils/parse-int item)
+    :content   content
+    :score     score
+    :parent    (utils/parse-int parent)
+    :submitted (java.util.Date.)}))
+
+(defn create-vote
+  "Create a new vote record in the db."
+  [author item type]
+  (create!
+   "vote"
+   {:author    author
+    :item      item
+    :type      type
+    :submitted (java.util.Date.)}))

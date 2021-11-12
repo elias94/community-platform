@@ -1,5 +1,10 @@
 (ns socn.session)
 
+(defn authenticated?
+  "True if the user is authenticated."
+  [req]
+  (boolean (:identity req)))
+
 (defn auth
   "Return the value of key k inside
   the session identity."

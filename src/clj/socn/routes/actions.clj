@@ -33,21 +33,21 @@
       (throw (Exception. "Invalid id parameter.")))))
 
 (defn submit-item [req]
-  (let [{:keys [params session]}    req
-        {{user-id :id} :identity}   session
-        {:keys [title url content]} params]
-    (->> (controller/create!
-          "item"
-          {:author    user-id
-           :score     0
-           :submitted (java.util.Date.)
-           :url       url
-           :domain    (utils/domain-name url)
-           :content   content
-           :title     title})
-         :id ; query return a map {:id id}
-         (str "/item?id=")
-         (redirect))))
+  (let [{{:keys [title url content]} :params} req
+        user-id (session/auth :id req)
+        item-id (-> (controller/create!
+                     "item"
+                     {:author    user-id
+                      :score     0
+                      :submitted (java.util.Date.)
+                      :url       url
+                      :domain    (utils/domain-name url)
+                      :content   content
+                      :title     title})
+                    :id)]
+    ;; user automatically vote the item (increasing the karma)
+    (controller/create-vote user-id item-id \i)
+    (redirect (str "/item?id=" item-id))))
 
 (defn save-comment [req]
   (let [{:keys [params session]}      req
@@ -65,31 +65,40 @@
          (str "/item?id=" item "#") ; navigate to comment by id
          (redirect))))
 
+(defn reply-page [req]
+  (let [{{:keys [id]} :params} req
+        parent (controller/get
+                "comment"
+                {:id (utils/parse-int id)})
+        ext    (->> (controller/get
+                   "item"
+                   {:id (:item parent)})
+                   (assoc parent :item))]
+    (default-page req "reply" :parent ext)))
+
 (defn save-vote [req]
   (let [{:keys [id type dir goto]} (:params req)
         user-id (session/auth :id req)
         item    (utils/parse-int id)
         exists  (controller/exists? "vote" {:author user-id :item item})]
     (if (s/valid? :vote/direction dir)
-      ((if (= dir "up")
-         (if (not exists) ; upvote
-           (do
-             (controller/create!
-              "vote"
-              {:author    user-id
-               :item      item
-               :type      (first type)
-               :submitted (java.util.Date.)})
-             (redirect goto))
-           (throw (Exception. "Item already voted.")))
-         (if exists ; downvote
-           (do
-             (controller/delete!
-              "vote"
-              {:author    user-id
-               :item      item})
-             (redirect goto))
-           (throw (Exception. "Invalid vote reference.")))))
+      (do
+        (if (= dir "up")
+          (if (not exists) ; upvote
+            (controller/create!
+             "vote"
+             {:author    user-id
+              :item      item
+              :type      (first type) ; \c or \i
+              :submitted (java.util.Date.)})
+            (throw (Exception. "Item already voted.")))
+          (if exists ; downvote
+            (controller/delete!
+             "vote"
+             {:author    user-id
+              :item      item})
+            (throw (Exception. "Invalid vote reference."))))
+        (redirect goto)) ; probably not reached
       (throw (Exception. "Invalid direction parameter.")))))
 
 (defn update-user [{:keys [params session] :as req}]
@@ -104,7 +113,7 @@
 
 (defn update-item [req]
   (let [{{:keys [id type content goto]} :params} req
-        item-type (utils/parse-char type)]
+        item-type (first type)] ; \c or \i
     (if (s/valid? :socn.validations/type item-type)
       (let [entity (if (= item-type \c) "comment" "item")
             id     (utils/parse-int id)
@@ -143,8 +152,11 @@
    ["/submit"      {:get submit-page
                     :post submit-item}]
    ["/comment"     {:post save-comment}]
+   ["/reply"       {:get reply-page}]
    ["/vote"        {:get save-vote}]
    ["/edit"        {:get edit-page}]
    ["/update"      {:post update-item}]
    ["/delete"      {:get delete-item}]
-   ["/update-user" {:post update-user}]])
+   ["/update-user" {:post update-user}]
+   ;; a post flagged becomes [flagged] or [dead]
+   ["/flag"]])

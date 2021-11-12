@@ -14,14 +14,14 @@ WHERE item = :item
 SELECT * FROM votes
 WHERE author = :author
 
--- :name exists-vote? :? :n
+-- :name exists-vote? :! :1
 -- :doc check if a vote exists given author and item
 SELECT exists(
   SELECT 1 FROM votes
-  WHERE author = :author, item = :item
+  WHERE author = :author AND item = :item
 )
 
 -- :name delete-vote! :! :n
 -- :doc delete a vote record given author and item
 DELETE FROM votes
-WHERE author = :author, item = :item
+WHERE author = :author AND item = :item

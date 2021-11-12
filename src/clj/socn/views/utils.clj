@@ -1,5 +1,6 @@
 (ns socn.views.utils
   (:require [clojure.string :as string]
+            [ring.util.codec :refer [form-encode]]
             [socn.utils :refer [trunc]]
             [java-time :as t]
             [buddy.auth :refer [authenticated?]]))
@@ -39,3 +40,11 @@
   (and (authenticated? req)
        (let [{{:keys [id]} :identity} (:session req)]
          (= id (:author comment)))))
+
+(defn encode-url
+  "Encode route and query-params in a url format.
+  Optionally include an id appended with #."
+  ([route query-params]
+   (str "/" route "?" (form-encode query-params)))
+  ([route query-params id]
+   (str (encode-url route query-params) "#" id)))
