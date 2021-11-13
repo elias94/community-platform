@@ -42,5 +42,5 @@ WHERE id = :id
 
 -- :name delete-comment! :! :n
 -- :doc deletes comment by id
-DELETE comments
+DELETE FROM comments
 WHERE id = :id

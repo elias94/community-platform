@@ -6,30 +6,34 @@
             [ring.util.response :refer [redirect]]
             [socn.routes.common :refer [default-page]]
             [socn.controllers.core :as controller]
-            [socn.controllers.items :as items-controller]
-            [socn.session :as session]))
+            [socn.controllers.items :as i-controller]
+            [socn.session :as session]
+            [socn.views.utils :refer [encode-url]]))
 
 (defn submit-page [req]
   (default-page req "submit"))
 
 (defn edit-page [req]
-  (let [{:keys [params]}  req
-        {id :id item-type :type} params
+  (let [{{id :id item-type :type} :params} req
         id        (utils/parse-int id)
         item-type (utils/parse-char item-type)]
     (if (and (s/valid? :item/id id)
              (s/valid? :socn.validations/type item-type))
       (let [item-type (if (= item-type \c) :comment :item)
+            user      (session/auth :id req)
             item      (if (= item-type :comment)
                         (controller/get "comment" {:id id})
-                        (controller/get "item" {:id id}))
-            ext-item  (if (= item-type :comment)
-                        (->> (controller/get "item" {:id (:item item)})
-                             (assoc item :item))
-                        item)]
-        (default-page req "edit"
-          :item ext-item
-          :type item-type))
+                        (controller/get "item" {:id id}))]
+        (if (i-controller/can-edit? user item)
+          (default-page req "edit"
+          ;; set :item to the item object related to the comment
+            :item (if (= item-type :comment)
+                    (->> (controller/get "item" {:id (:item item)})
+                         (assoc item :item))
+                    item)
+            :type item-type)
+          (-> (encode-url "item" {:id id})
+              (redirect))))
       (throw (Exception. "Invalid id parameter.")))))
 
 (defn submit-item [req]
@@ -52,13 +56,13 @@
 (defn save-comment [req]
   (let [{:keys [params session]}      req
         {{user-id :id} :identity}     session
-        {:keys [comment item parent]} params]
+        {:keys [content item parent]} params]
     (->> (controller/create!
           "comment"
           {:author    user-id
            :score     1
            :submitted (java.util.Date.)
-           :content   comment
+           :content   content
            :parent    parent
            :item      (utils/parse-int item)})
          :id
@@ -71,9 +75,9 @@
                 "comment"
                 {:id (utils/parse-int id)})
         ext    (->> (controller/get
-                   "item"
-                   {:id (:item parent)})
-                   (assoc parent :item))]
+                     "item"
+                     {:id (:item parent)})
+                    (assoc parent :item))]
     (default-page req "reply" :parent ext)))
 
 (defn save-vote [req]
@@ -85,18 +89,10 @@
       (do
         (if (= dir "up")
           (if (not exists) ; upvote
-            (controller/create!
-             "vote"
-             {:author    user-id
-              :item      item
-              :type      (first type) ; \c or \i
-              :submitted (java.util.Date.)})
+            (controller/create-vote user-id item (first type))
             (throw (Exception. "Item already voted.")))
           (if exists ; downvote
-            (controller/delete!
-             "vote"
-             {:author    user-id
-              :item      item})
+            (controller/delete-vote user-id item)
             (throw (Exception. "Invalid vote reference."))))
         (redirect goto)) ; probably not reached
       (throw (Exception. "Invalid direction parameter.")))))
@@ -116,32 +112,45 @@
         item-type (first type)] ; \c or \i
     (if (s/valid? :socn.validations/type item-type)
       (let [entity (if (= item-type \c) "comment" "item")
-            id     (utils/parse-int id)
-            user   (session/auth req)
-            item   (controller/get entity {:id id})]
-        (if (items-controller/can-edit? user item)
-          (do
-            (controller/update! entity {:id      id
-                                        :content content
-                                        :edited  (java.util.Date.)})
-            (redirect (or goto (str "/item?id=" id))))
-          (throw (Exception. "User cannot edit."))))
+            id     (utils/parse-int id)]
+        (controller/update! entity {:id      id
+                                    :content content
+                                    :edited  (java.util.Date.)})
+        (redirect (or goto (str "/item?id=" id))))
       (throw (Exception. "Invalid parameters.")))))
 
 (defn delete-item [req]
   (let [{{:keys [id type goto]} :params} req
         item-type (utils/parse-char type)]
-    (if (s/valid? :socn.validations/type item-type)
-      (let [entity (if (= item-type \c) "comment" "item")
-            id     (utils/parse-int id)
-            user   (session/auth req)
-            item   (controller/get entity {:id id})]
-        (if (items-controller/can-edit? user item)
-          (do
-            (controller/delete! entity {:id id})
-            (redirect (or goto (str "/item?id=" id))))
-          (throw (Exception. "User cannot edit."))))
-      (throw (Exception. "Invalid parameters.")))))
+    (let [entity (if (= item-type \c) "comment" "item")
+          id     (utils/parse-int id)
+          user   (session/auth req)
+          item   (controller/get entity {:id id})
+          goto   (or goto
+                     (if (= item-type \c)
+                       (encode-url "item" {:id (:item item)})
+                       "/"))]
+      (if (i-controller/can-edit? user item)
+        (do
+          (controller/delete! entity {:id id})
+          (redirect goto))
+        (throw (Exception. "User cannot edit."))))))
+
+(defn save-comment-reply [req]
+  (let [{{:keys [id content]} :params} req
+        user-id (session/auth :id req)
+        parent  (controller/get "comment" {:id (utils/parse-int id)})]
+    (->> (controller/create!
+          "comment"
+          {:author    user-id
+           :score     1
+           :submitted (java.util.Date.)
+           :content   content
+           :parent    (:id parent)
+           :item      (utils/parse-int (:item parent))})
+         :id
+         (str "/item?id=" (:item parent) "#")
+         (redirect))))
 
 ;; Actions route are restricted to authenticated users only
 (defn actions-routes []
@@ -152,7 +161,8 @@
    ["/submit"      {:get submit-page
                     :post submit-item}]
    ["/comment"     {:post save-comment}]
-   ["/reply"       {:get reply-page}]
+   ["/reply"       {:get reply-page
+                    :post save-comment-reply}]
    ["/vote"        {:get save-vote}]
    ["/edit"        {:get edit-page}]
    ["/update"      {:post update-item}]

@@ -38,14 +38,18 @@
 (defn author? [user item]
   (= (:author item) (:id user)))
 
+(defn admin? [user]
+  (true? (:admin user)))
+
 (defn item-age [item]
   (age (:submitted item) :minutes))
 
 (defn can-edit?
   "Check if user is allowed to edit the item."
   [user item]
-  (and (author? user item)
-       (< (item-age item) user-changetime)))
+  (or (admin? user)
+      (and (author? user item)
+           (< (item-age item) user-changetime))))
 
 (def gravity 1.8)
 (def timebase 120)
@@ -64,7 +68,7 @@
     ((/ (math/expt (- (count votes) 1) 0.8)
         (math/expt (+ (age-hours item) 2) gravity)))))
 
-(defn- comp-comments 
+(defn- comp-comments
   "Compare two comments by score and by date-time submitted."
   [a b]
   (let [comp (compare (:score b) (:score a))]

@@ -14,13 +14,13 @@
       (text-age (age submitted :minutes))]]))
 
 (defn news-view [news index]
-  (let [{:keys [id domain comments]} news]
+  (let [{:keys [id domain comments url]} news]
     [:div.news
      [:div.news-pre
       [:span.news-index (str (+ index 1) ".")]
       (common/upvote news)]
      [:div.news-header
-      [:a.news-link {:href (str "/item?id=" id)}
+      [:a.news-link {:href url}
        [:h1.news-title (:title news)]]
       [:a.news-info {:href (str "?site=" domain)}
        [:span.news-domain (str "(" domain ")")]]]

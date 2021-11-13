@@ -10,7 +10,7 @@
             [socn.session :as session]
             [socn.utils :as utils]
             [socn.controllers.core :as controller]
-            [socn.controllers.items :as item-controller]))
+            [socn.controllers.items :as i-controller]))
 
 (defn- item-vote
   "Return a new map with the boolean key :vote
@@ -41,23 +41,28 @@
     (default-page req "home" :items items)))
 
 (defn item-page [req]
-  (let [{{:keys [id]} :params} req
-        user (session/auth :id req)]
+  (let [{{:keys [id]} :params} req]
     (if (string/blank? id)
       (redirect "/")
       (try
-        (let [id        (utils/parse-int id)
-              item      (db/get-item {:id id})
-              comments  (db/get-comments-by-item {:item id :offset 0
-                                                  :limit  100})
-              sorted        (item-controller/sort-comments comments)
-              comments-vote (items-vote sorted req)]
+        (let [id       (utils/parse-int id)
+              user-id  (session/auth :id req)
+              item     (controller/get "item" {:id id})
+              comments (db/get-comments-by-item
+                        {:item id :offset 0 :limit 100})
+              sorted   (i-controller/sort-comments comments)
+              user     (and user-id (controller/get "user" {:id user-id}))
+              can-edit (when user (i-controller/can-edit? user item))]
           (default-page req "item"
-            :item     (item-vote item user)
-            :comments comments-vote))
-        (catch Exception _
-          (when-not (:dev env)
-            (redirect "/")))))))
+            :item     (if (session/authenticated? req)
+                        (item-vote item user-id)
+                        item)
+            :comments (items-vote sorted req)
+            :can-edit can-edit))
+        (catch Exception e
+          (if-not (:dev env)
+            (redirect "/")
+            (log/error e)))))))
 
 (defn user-page [req]
   (let [{{:keys [id]}       :params

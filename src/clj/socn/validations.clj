@@ -51,6 +51,8 @@
             :user/email
             :user/about
             :user/showall]))
+(s/def :user/exists?
+  (s/keys :req-un [:user/id]))
 
 (s/def :comment/id        int?)
 (s/def :comment/author    string?)
@@ -75,7 +77,7 @@
    :req-un [:comment/id
             :comment/content
             :comment/edited]))
-(s/def :comment/delete
+(s/def :comment/delete!
   (s/keys :req-un [:comment/id]))
 
 

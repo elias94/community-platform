@@ -100,3 +100,17 @@
     :item      item
     :type      type
     :submitted (java.util.Date.)}))
+
+(defn delete-vote
+  [author item]
+  (delete!
+   "vote"
+   {:author author
+    :item   item}))
+
+(defn exists-vote
+  [author item]
+  (exists?
+   "vote"
+   {:author author
+    :item   item}))

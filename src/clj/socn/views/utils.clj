@@ -5,6 +5,21 @@
             [java-time :as t]
             [buddy.auth :refer [authenticated?]]))
 
+;;;;;;;;;;;;;;;;;;;
+;; Macros
+;;;;;;;;;;;;;;;;;;;
+
+(defmacro with-sep
+  "Prepend a | separator with spaces."
+  [& expr]
+  `(list
+    [:span.separator]
+    ~@expr))
+
+;;;;;;;;;;;;;;;;;;;
+;; Functions
+;;;;;;;;;;;;;;;;;;;
+
 (defn class-names
   "Convert a vector of css class-names in a string."
   [classes]

@@ -44,3 +44,10 @@ WHERE id = :id
 UPDATE users
 SET about = :about, email = :email, showall = :showall
 WHERE id = :id
+
+-- :name exists-user? :! :1
+-- :doc check if a user exists given author and item
+SELECT exists(
+  SELECT 1 FROM users
+  WHERE id = :id
+)
