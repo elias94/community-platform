@@ -6,7 +6,7 @@
             [ring.util.response :refer [redirect]]
             [socn.routes.common :refer [default-page]]
             [socn.controllers.core :as controller]
-            [socn.controllers.items :as i-controller]
+            [socn.controllers.items :refer [can-edit?]]
             [socn.session :as session]
             [socn.views.utils :refer [encode-url]]))
 
@@ -20,11 +20,13 @@
     (if (and (s/valid? :item/id id)
              (s/valid? :socn.validations/type item-type))
       (let [item-type (if (= item-type \c) :comment :item)
-            user      (session/auth :id req)
+            user-id   (session/auth :id req)
+            user      (when (s/valid? :user/id user-id)
+                        (controller/get "user" {:id user-id}))
             item      (if (= item-type :comment)
                         (controller/get "comment" {:id id})
                         (controller/get "item" {:id id}))]
-        (if (i-controller/can-edit? user item)
+        (if (can-edit? user item)
           (default-page req "edit"
           ;; set :item to the item object related to the comment
             :item (if (= item-type :comment)
@@ -130,7 +132,7 @@
                      (if (= item-type \c)
                        (encode-url "item" {:id (:item item)})
                        "/"))]
-      (if (i-controller/can-edit? user item)
+      (if (can-edit? user item)
         (do
           (controller/delete! entity {:id id})
           (redirect goto))
