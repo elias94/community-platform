@@ -27,7 +27,8 @@
    [:div.news-footer
     (item-desc news)
     [:span.separator]
-    [:span "flag"]
+    [:a.news-info {:href (encode-url "flag" {:id id})}
+     "flag"]
     [:span.separator]
     [:span "hide"]
     [:span.separator]

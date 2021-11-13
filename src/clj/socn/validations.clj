@@ -131,3 +131,10 @@
   (s/keys
    :req-un [:vote/author
             :vote/item]))
+
+(s/def :flagged/user string?)
+(s/def :flagged/item int?)
+(s/def :flagged/create!
+  (s/keys
+   :req-un [:flagged/item
+            :flagged/user]))

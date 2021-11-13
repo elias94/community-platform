@@ -154,6 +154,10 @@
          (str "/item?id=" (:item parent) "#")
          (redirect))))
 
+(defn flag-item [req]
+  (let [{{:keys [id]} :params} req]
+    ))
+
 ;; Actions route are restricted to authenticated users only
 (defn actions-routes []
   [""
@@ -171,4 +175,4 @@
    ["/delete"      {:get delete-item}]
    ["/update-user" {:post update-user}]
    ;; a post flagged becomes [flagged] or [dead]
-   ["/flag"]])
+   ["/flag"        {:get flag-item}]])

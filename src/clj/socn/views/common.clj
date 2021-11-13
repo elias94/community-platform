@@ -153,7 +153,6 @@
       [:div.navbar-start
        [:div.navbar-brand
         [:a.navbar-item {:href "/"} "SOC"]]
-       (navbar-item "projects" route)
        (when (authenticated? req) (navbar-item "submit" route))]
       [:div.navbar-end
        (if (authenticated? req)

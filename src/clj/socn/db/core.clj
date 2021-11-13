@@ -23,7 +23,8 @@
                           "sql/users.sql"
                           "sql/items.sql"
                           "sql/votes.sql"
-                          "sql/comments.sql"))
+                          "sql/comments.sql"
+                          "sql/flagged.sql"))
 
 (bind-db)
 
