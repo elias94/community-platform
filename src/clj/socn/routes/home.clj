@@ -52,11 +52,12 @@
                         {:item id :offset 0 :limit 100})
               sorted   (i-controller/sort-comments comments)
               user     (and user-id (controller/get "user" {:id user-id}))
-              can-edit (when user (i-controller/can-edit? user item))]
+              can-edit (when user (i-controller/can-edit? user item))
+              item-ext (if (session/authenticated? req)
+                         (item-vote item user-id)
+                         item)]
           (default-page req "item"
-            :item     (if (session/authenticated? req)
-                        (item-vote item user-id)
-                        item)
+            :item     item-ext
             :comments (items-vote sorted req)
             :can-edit can-edit))
         (catch Exception e
