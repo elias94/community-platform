@@ -1,17 +1,19 @@
 (ns socn.routes.actions
   (:require [clojure.spec.alpha :as s]
+            [spec-tools.core :as st]
             [socn.db.core :as db]
             [socn.utils :as utils]
             [socn.middleware :as middleware]
             [ring.util.response :refer [redirect]]
             [socn.routes.common :refer [default-page]]
             [socn.controllers.core :as controller]
-            [socn.controllers.items :refer [can-edit?]]
+            [socn.controllers.items :refer [can-edit? can-flag?]]
             [socn.session :as session]
+            [socn.validations :refer [coerce]]
             [socn.views.utils :refer [encode-url]]))
 
 (defn submit-page [req]
-  (default-page req "submit"))
+  (default-page req "submit" {}))
 
 (defn edit-page [req]
   (let [{{id :id item-type :type} :params} req
@@ -28,12 +30,12 @@
                         (controller/get "item" {:id id}))]
         (if (can-edit? user item)
           (default-page req "edit"
-          ;; set :item to the item object related to the comment
-            :item (if (= item-type :comment)
-                    (->> (controller/get "item" {:id (:item item)})
-                         (assoc item :item))
-                    item)
-            :type item-type)
+            ;; set :item to the item object related to the comment
+            {:item (if (= item-type :comment)
+                     (->> (controller/get "item" {:id (:item item)})
+                          (assoc item :item))
+                     item)
+             :type item-type})
           (-> (encode-url "item" {:id id})
               (redirect))))
       (throw (Exception. "Invalid id parameter.")))))
@@ -80,7 +82,7 @@
                      "item"
                      {:id (:item parent)})
                     (assoc parent :item))]
-    (default-page req "reply" :parent ext)))
+    (default-page req "reply" {:parent ext})))
 
 (defn save-vote [req]
   (let [{:keys [id type dir goto]} (:params req)
@@ -154,9 +156,18 @@
          (str "/item?id=" (:item parent) "#")
          (redirect))))
 
-(defn flag-item [req]
-  (let [{{:keys [id]} :params} req]
-    ))
+(defn flag-item [{:keys [params] :as req}]
+  (let [data    (coerce (:params req) :flagged/id :strict-str)
+        user-id (session/auth :id req)
+        user    (controller/get-user user-id)
+        db-map  {:item (:id data) :user user-id}]
+    (when (and (s/valid? :flagged/id data)
+               (controller/get "item" data)
+               (can-flag? user))
+      (if (controller/get "flagged" db-map) ; if exists? delete! else create!
+        (controller/delete! "flagged" db-map)
+        (controller/create! "flagged" db-map)))
+    (redirect (or (:goto params) "/"))))
 
 ;; Actions route are restricted to authenticated users only
 (defn actions-routes []

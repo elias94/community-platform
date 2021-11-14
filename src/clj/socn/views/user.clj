@@ -4,7 +4,7 @@
             [socn.views.utils :refer [plural age text-age]]
             [ring.util.anti-forgery :refer [anti-forgery-field]]))
 
-(defn view [& {:keys [user is-user]}]
+(defn view [{:keys [user is-user]}]
   (let [{:keys [id created karma about email showall]} user]
     (html
      [:div.container

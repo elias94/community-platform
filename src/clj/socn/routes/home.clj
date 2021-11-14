@@ -10,35 +10,69 @@
             [socn.session :as session]
             [socn.utils :as utils]
             [socn.controllers.core :as controller]
-            [socn.controllers.items :as i-controller]))
+            [socn.controllers.items :refer [sort-comments can-flag?
+                                            can-edit?]]))
 
-(defn- item-vote
-  "Return a new map with the boolean key :vote
-  if the user has voted."
-  [item user]
-  (assoc item :voted (controller/exists? "vote" {:author user
-                                                 :item (:id item)})))
-
-(defn- items-vote
-  "Assignt the key :vote for all the items if
-  the user is authenticated."
-  [items req]
+(defn- item-links
+  "Create a map of available links for display
+  the item.
+  
+  Set extend to true if inside the item page."
+  [item req extended]
   (if (session/authenticated? req)
-    (let [user (session/auth :id req)]
-      (map #(item-vote % user) items))
+    (let [user-id (session/auth :id req)
+          user    (controller/get-user user-id)]
+      {:flag   (can-flag? user)
+       :hide   true
+       :delete (and extended (can-edit? user item))
+       :vote   (controller/exists-vote user-id (:id item))})
+    {}))
+
+(defn- add-links
+  "Add links to the sequence of items."
+  [items req extended]
+  (if (session/authenticated? req)
+    (let [user-id (session/auth :id req)
+          user    (controller/get-user user-id)
+          map-fn  (fn [item]
+                    (assoc
+                     item
+                     :links
+                     {:flag   (can-flag? user)
+                      :hide   true
+                      :delete (and extended (can-edit? user item))
+                      :vote   (controller/exists-vote
+                               user-id
+                               (:id item))}))]
+      (map map-fn items))
     items))
+
+(defn- comment-links
+  "Add links to comment recursively."
+  [comment req parent opts]
+  (let [{:keys [prev next lvl root]} opts]
+    {:parent parent
+     :prev   prev
+     :next   next
+     :edit   ()
+     :delete}))
+
+(defn- add-links-comments
+  "Add links to the sequence of comment."
+  [comments req]
+  ())
 
 (defn home-page [req]
   (let [{{:keys [site]} :params} req
         page-size (:items-per-page env)
         items     (if (s/valid? :socn.validations/domain site)
-                    (db/get-items-with-comments-by-domain {:domain site
-                                                           :offset 0
-                                                           :limit  page-size})
+                    (db/get-items-with-comments-by-domain
+                     {:domain site
+                      :offset 0
+                      :limit  page-size})
                     (db/get-items-with-comments {:offset 0
-                                                 :limit  page-size}))
-        items     (items-vote items req)]
-    (default-page req "home" :items items)))
+                                                 :limit  page-size}))]
+    (default-page req "home" {:items (add-links items req false)})))
 
 (defn item-page [req]
   (let [{{:keys [id]} :params} req]
@@ -46,20 +80,15 @@
       (redirect "/")
       (try
         (let [id       (utils/parse-int id)
-              user-id  (session/auth :id req)
               item     (controller/get "item" {:id id})
-              comments (db/get-comments-by-item
-                        {:item id :offset 0 :limit 100})
-              sorted   (i-controller/sort-comments comments)
-              user     (and user-id (controller/get "user" {:id user-id}))
-              can-edit (when user (i-controller/can-edit? user item))
-              item-ext (if (session/authenticated? req)
-                         (item-vote item user-id)
-                         item)]
+              comments (-> (db/get-comments-by-item
+                            {:item id :offset 0 :limit 100})
+                           (sort-comments)
+                           (add-links-comments req))]
           (default-page req "item"
-            :item     item-ext
-            :comments (items-vote sorted req)
-            :can-edit can-edit))
+            {:item     item
+             :links    (item-links item req true)
+             :comments comments}))
         (catch Exception e
           (if-not (:dev env)
             (redirect "/")
@@ -74,7 +103,7 @@
             user (if is-user
                    identity
                    (dissoc (controller/get "user" {:id id}) :password))]
-        (default-page req "user" :user user :is-user is-user)))))
+        (default-page req "user" {:user user :is-user is-user})))))
 
 (defn home-routes []
   [""

@@ -1,5 +1,6 @@
 (ns socn.validations
-  (:require [clojure.spec.alpha :as s]))
+  (:require [clojure.spec.alpha :as s]
+            [spec-tools.core :as st]))
 
 ;;=======================
 ;; Regex
@@ -132,9 +133,71 @@
    :req-un [:vote/author
             :vote/item]))
 
+
 (s/def :flagged/user string?)
 (s/def :flagged/item int?)
-(s/def :flagged/create!
+(s/def :flagged/get
   (s/keys
    :req-un [:flagged/item
             :flagged/user]))
+(s/def :flagged/create! :flagged/get)
+(s/def :flagged/delete! :flagged/get)
+(s/def :flagged/id
+  (s/keys
+   :req-un [:item/id]))
+
+;;=======================
+;; Validation functions
+;;=======================
+
+;; ref: https://github.com/metosin/spec-tools/blob/master/docs/01_coercion.md#strict-coercion
+(def strict-transf
+  "Transformer for strict coercion using json."
+  (st/type-transformer
+   st/json-transformer
+   st/strip-extra-keys-transformer
+   st/strip-extra-values-transformer))
+
+(def strict-transf-str
+  "Transformer for strict coercion using string."
+  (st/type-transformer
+   st/string-transformer
+   st/strip-extra-keys-transformer
+   st/strip-extra-values-transformer))
+
+(defn get-transformer
+  "Return the tranfromer using a key between:
+  :string, :json, :strict, :strict-str .
+  
+  Default null."
+  [k]
+  (case k
+    :string     st/string-transformer
+    :json       st/json-transformer
+    :strict     strict-transf
+    :strict-str strict-transf-str
+    :else       nil))
+
+(defn valid?
+  "Clojure spec validation with data coercion.
+  Must containt spec, data and transformer to use."
+  [data spec transf]
+  (s/valid?
+   spec
+   (st/coerce spec data (get-transformer transf))))
+
+(defn coerce
+  "Coerce the value to spec using a transformer
+  pointet by the key."
+  [data spec k]
+  (st/coerce spec data (get-transformer k)))
+
+(comment
+  (require '[muuntaja.core :as m])
+  (macroexpand (valid?
+                {:author "es" :item "12"}
+                :vote/delete!
+                :string))
+  (s/valid? :item/get (st/coerce :item/get {:id "1"} st/string-transformer))
+  (st/coerce :item/get {:id "1" :prova 2} strict-transf-str)
+  (valid? "1" :item/id :strict-str))

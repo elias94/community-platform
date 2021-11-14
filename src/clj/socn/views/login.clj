@@ -4,7 +4,7 @@
             [socn.views.common :refer [notification]]
             [ring.util.anti-forgery :refer [anti-forgery-field]]))
 
-(defn view [& {:keys [error error-signup username]}]
+(defn view [{:keys [error error-signup username]}]
   (html
    [:div.container
     [:div.content

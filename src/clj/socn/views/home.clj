@@ -1,7 +1,8 @@
 (ns socn.views.home
   (:require [hiccup.core :refer [html]]
             [socn.views.common :as common]
-            [socn.views.utils :refer [plural age text-age]]))
+            [socn.views.utils :refer [plural age text-age
+                                      with-sep encode-url]]))
 
 (defn news-desc [news]
   (let [{:keys [id score author submitted]} news]
@@ -14,7 +15,7 @@
       (text-age (age submitted :minutes))]]))
 
 (defn news-view [news index]
-  (let [{:keys [id domain comments url]} news]
+  (let [{:keys [id domain comments url links]} news]
     [:div.news
      [:div.news-pre
       [:span.news-index (str (+ index 1) ".")]
@@ -27,15 +28,17 @@
      [:span]
      [:div.news-footer
       (news-desc news)
-      [:span.separator]
-      [:span "flag"]
-      [:span.separator]
-      [:span "hide"]
-      [:span.separator]
-      [:a.news-info {:href (str "/item?id=" id) :title "Open discussion"}
-       [:span (plural comments "comment")]]]]))
+      (when (:flag links)
+        (with-sep
+          [:a.news-info {:href (encode-url "flag" {:id id})} "flag"]))
+      (when (:hide links)
+        (with-sep [:span "hide"]))
+      (with-sep
+        [:a.news-info {:href (encode-url "item" {:id id})
+                       :title "Open discussion"}
+         [:span (plural comments "comment")]])]]))
 
-(defn view [& {:keys [items]}]
+(defn view [{:keys [items]}]
   (html
    [:div.container
     [:div.content

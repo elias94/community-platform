@@ -6,11 +6,11 @@
 ;;;;;;;;;;;;;;;;;;;
 ;; thresholds
 ;;;;;;;;;;;;;;;;;;;
-(def downvote-threshold* 100)
-(def downvote-time* 1440)
-(def flag-threshold* 30)
-(def flag-kill-threshold* 7)
-(def many-flags* 1)
+(def downvote-threshold 100)
+(def downvote-time 1440)
+(def flag-threshold 30)
+(def flag-kill-threshold 7)
+(def many-flags 1)
 ; Un-flagging something doesn't unkill it, if it's now no longer
 ; over flag-kill-threshold.  Ok, since arbitrary threshold anyway.
 (defn flag-link [])
@@ -34,6 +34,7 @@
 ;;                (if (ignored user) 1 10)))))
 
 (def user-changetime 120)
+(def user-flag-threshold 50)
 
 (defn author? [user item]
   (= (:author item) (:id user)))
@@ -50,6 +51,12 @@
   (or (admin? user)
       (and (author? user item)
            (< (item-age item) user-changetime))))
+
+(defn can-flag?
+  "Check if the user is allowed to flag posts."
+  [user]
+  (or (admin? user)
+      (> (:karma user) user-flag-threshold)))
 
 (def gravity 1.8)
 (def timebase 120)

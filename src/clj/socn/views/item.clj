@@ -14,10 +14,11 @@
      [:a.news-info {:href (encode-url "item" {:id id})}
       (text-age (age submitted :minutes))]]))
 
-(defn item-view [{:keys [id title domain comments] :as news} can-edit]
+(defn item-view [{:keys [id title domain] :as news} links comments]
   [:div.news
    [:div.news-pre
-    (common/upvote news)]
+    (when (:vote links)
+      (common/upvote news))]
    [:div.news-header
     [:a.news-link {:href (encode-url "item" {:id id})}
      [:h1.news-title title]]
@@ -26,23 +27,23 @@
    [:span]
    [:div.news-footer
     (item-desc news)
-    [:span.separator]
-    [:a.news-info {:href (encode-url "flag" {:id id})}
-     "flag"]
-    [:span.separator]
-    [:span "hide"]
-    [:span.separator]
-    [:a.news-info {:href (encode-url "item" {:id id})
-                   :title "Open discussion"}
-     [:span (plural comments "comment")]]
-    (when can-edit
+    (when (:flag links)
       (with-sep
-        [:a.news-info {:href (encode-url "delete" {:id id}) 
+        [:a.news-info {:href (encode-url "flag" {:id id})} "flag"]))
+    (when (:hide links)
+      (with-sep [:span "hide"]))
+    (with-sep
+      [:a.news-info {:href (encode-url "item" {:id id})
+                     :title "Open discussion"}
+       [:span (plural comments "comment")]])
+    (when (:delete links)
+      (with-sep
+        [:a.news-info {:href (encode-url "delete" {:id id})
                        :title "Delete item"}
          "delete"]))]])
 
 (defn comment-view [comment req lvl]
-  (let [{:keys [id author content submitted score]} comment
+  (let [{:keys [id author content submitted score links]} comment
         owned (author? comment req)]
     [:div.comment-wrapper
      [:div.comment-indent
@@ -54,9 +55,7 @@
          [:span "*"])
        [:div.comment-header
         [:span (str (plural score "point")
-                    " by "
-                    author
-                    " "
+                    " by " author " "
                     (text-age (age submitted :minutes)))]
         [:span " | prev | next"]
         (when owned
@@ -82,14 +81,14 @@
   (list
    (comment-view comment req lvl)
    (doall
-    (for [c (:children comment)]
+    (for [c (:children  comment)]
       (comment-with-sub c req (inc lvl))))))
 
-(defn view [& {:keys [item comments can-edit req]}]
+(defn view [{:keys [item links comments req]}]
   (html
    [:div.container
     [:div.content
-     (item-view (assoc item :comments (count comments)) can-edit)
+     (item-view item links (count comments))
      (when (authenticated? req)
        (common/comment-form
         item

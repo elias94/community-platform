@@ -3,7 +3,7 @@
             [socn.views.common :as common]
             [socn.views.utils :refer [encode-url]]))
 
-(defn view [& {:keys [parent req]}]
+(defn view [{:keys [parent req]}]
   (html
    [:div.container
     [:div.content

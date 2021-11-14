@@ -10,7 +10,7 @@
 (defn login-page [req]
   (if (authenticated? req)
     (redirect "/")
-    (default-page req "login")))
+    (default-page req "login" {})))
 
 (defn handle-login
   "Check the request for username and password

@@ -51,6 +51,11 @@
   (-> (db-action "exists" entity params :mark "?")
       :exists))
 
+(defn get-user
+  "Get the record of the user with spceified id."
+  [id]
+  (get "user" {:id id}))
+
 (defn create-user!
   "Create a new user record in the db hashing the password."
   [params]

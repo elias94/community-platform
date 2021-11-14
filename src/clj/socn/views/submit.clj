@@ -2,7 +2,7 @@
   (:require [hiccup.core :refer [html]]
             [ring.util.anti-forgery :refer [anti-forgery-field]]))
 
-(defn view [& _]
+(defn view [_]
   (html
    [:div.container
     [:div.content
