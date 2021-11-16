@@ -23,15 +23,15 @@
 (defn comment-form
   "Form to add a comment."
   [item action button-name]
-    [:div.item-form
-     [:form {:method "post" :action action}
-      (anti-forgery-field)
-      [:textarea.textarea {:name "content" :cols 49 :rows 5}
-       (when *comment-form-content*
-         (:content item))]
-      markdown-symbol
-      [:div
-       [:button {:type "submit"} button-name]]]])
+  [:div.item-form
+   [:form {:method "post" :action action}
+    (anti-forgery-field)
+    [:textarea.textarea {:name "content" :cols 49 :rows 5}
+     (when *comment-form-content*
+       (:content item))]
+    markdown-symbol
+    [:div
+     [:button {:type "submit"} button-name]]]])
 
 (defn upvote
   "Upvote component for item and comment."
@@ -64,6 +64,56 @@
        [:a.arrow-vote
         {:title "Upvote comment" :href url
          :onclick "return vote(event, this)"}]))))
+
+(defn item-desc [news]
+  (let [{:keys [id score author submitted]} news]
+    [:span
+     (str (plural score "point") " by ")
+     [:a.news-info {:href (encode-url "user" {:id author})} author]
+     [:span " "]
+     [:a.news-info {:href (encode-url "item" {:id id})}
+      (text-age (age submitted :minutes))]]))
+
+(def ^:dynamic *item-view-edit*  false)
+
+(defn item-view [{:keys [id title domain content] :as news} links comments]
+  [:div.news
+   [:div.news-head.news-head-small
+    [:div.news-pre
+     (when (:vote links)
+       (upvote news))]
+    [:div.news-header
+     [:a.news-link {:href (encode-url "item" {:id id})}
+      [:h1.news-title title]]
+     (when (string? domain)
+       [:a.news-info {:href (str "?site=" domain)}
+        [:span.news-domain (str "(" domain ")")]])]
+    [:span]
+    [:div.news-footer
+     (item-desc news)
+     (when (:flag links)
+       (with-sep
+         [:a.news-info {:href (encode-url "flag" {:id id})} "flag"]))
+     (when (:hide links)
+       (with-sep [:span "hide"]))
+     (when (and (string? content) *item-view-edit*)
+       (with-sep
+         [:a.news-info {:href (encode-url "edit" {:id id :type "i"})
+                        :title "Edit item"}
+          "edit"]))
+     (when (:delete links)
+       (with-sep
+         [:a.news-info {:href (encode-url "delete" {:id id})
+                        :title "Delete item"}
+          "delete"]))
+     (when (seq? comments)
+       (with-sep
+         [:a.news-info {:href (encode-url "item" {:id id})
+                        :title "Open discussion"}
+          [:span (plural comments "comment")]]))]]
+   (when (string? content)
+     [:div.news-content
+      [:div content]])])
 
 ;; List of supported options for the comment component
 (def ^:dynamic *comment-view-upvote*  false)
@@ -116,6 +166,10 @@
        (with-sep
          [:a.link {:href (encode-url "flag" {:id id})}
           "flag"]))
+     (when *comment-view-edit*
+       (with-sep
+         [:a.link {:href (encode-url "edit" {:id id :type "c"})}
+          "edit"]))
      (when *comment-view-delete*
        (with-sep
          [:a.link {:href (encode-url "delete" {:id id})}
@@ -153,6 +207,7 @@
       [:div.navbar-start
        [:div.navbar-brand
         [:a.navbar-item {:href "/"} "SOC"]]
+       (navbar-item "discussions" route)
        (when (authenticated? req) (navbar-item "submit" route))]
       [:div.navbar-end
        (if (authenticated? req)

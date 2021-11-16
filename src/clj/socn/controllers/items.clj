@@ -9,6 +9,7 @@
 (def downvote-threshold 100)
 (def downvote-time 1440)
 (def flag-threshold 30)
+;; threshold before killing an item
 (def flag-kill-threshold 7)
 (def many-flags 1)
 ; Un-flagging something doesn't unkill it, if it's now no longer

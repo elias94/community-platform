@@ -3,7 +3,7 @@
             [socn.views.common :as common]
             [socn.views.utils :refer [encode-url]]))
 
-(defn view [{:keys [item type req]}]
+(defn view [{:keys [item links type req]}]
   (html
    [:div.container
     [:div.content
@@ -13,7 +13,9 @@
                  common/*comment-view-context* true
                  common/*comment-view-delete*  true
                  common/*comment-view-on*      true]
-         (common/comment-view item :req req)))
+         (common/comment-view item :req req))
+       (binding [common/*item-view-edit* true]
+         (common/item-view item links nil)))
      (binding [common/*comment-form-content* true]
        (let [id         (:id item)
              is-comment (= type :comment)

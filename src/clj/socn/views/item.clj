@@ -5,65 +5,35 @@
             [socn.views.common :as common]
             [buddy.auth :refer [authenticated?]]))
 
-(defn item-desc [news]
-  (let [{:keys [id score author submitted]} news]
-    [:span
-     (str (plural score "point") " by ")
-     [:a.news-info {:href (encode-url "user" {:id author})} author]
-     [:span " "]
-     [:a.news-info {:href (encode-url "item" {:id id})}
-      (text-age (age submitted :minutes))]]))
-
-(defn item-view [{:keys [id title domain] :as news} links comments]
-  [:div.news
-   [:div.news-pre
-    (when (:vote links)
-      (common/upvote news))]
-   [:div.news-header
-    [:a.news-link {:href (encode-url "item" {:id id})}
-     [:h1.news-title title]]
-    [:a.news-info {:href (str "?site=" domain)}
-     [:span.news-domain (str "(" domain ")")]]]
-   [:span]
-   [:div.news-footer
-    (item-desc news)
-    (when (:flag links)
-      (with-sep
-        [:a.news-info {:href (encode-url "flag" {:id id})} "flag"]))
-    (when (:hide links)
-      (with-sep [:span "hide"]))
-    (with-sep
-      [:a.news-info {:href (encode-url "item" {:id id})
-                     :title "Open discussion"}
-       [:span (plural comments "comment")]])
-    (when (:delete links)
-      (with-sep
-        [:a.news-info {:href (encode-url "delete" {:id id})
-                       :title "Delete item"}
-         "delete"]))]])
-
 (defn comment-view [comment req lvl]
-  (let [{:keys [id author content submitted score links]} comment
-        owned (author? comment req)]
+  (let [{:keys [id author content submitted score links]} comment]
     [:div.comment-wrapper
      [:div.comment-indent
       {:style (str "width: " (* 25 lvl) "px")}]
      [:div.comment {:id id}
       [:div.comment-content
-       (if-not owned
+       (if (:vote links)
          (common/upvote comment)
          [:span "*"])
        [:div.comment-header
         [:span (str (plural score "point")
                     " by " author " "
                     (text-age (age submitted :minutes)))]
-        [:span " | prev | next"]
-        (when owned
+        (when (:parent links)
+          (with-sep
+            [:a.link {:href (str "#" (:parent links))} "parent"]))
+        (when (:prev links)
+          (with-sep
+            [:a.link {:href (str "#" (:prev links))} "prev"]))
+        (when (:next links)
+          (with-sep
+            [:a.link {:href (str "#" (:next links))} "next"]))
+        (when (:edit links)
           (with-sep
             [:a.link {:href (encode-url "edit" {:id id :type "c"})
                       :title "Edit comment"}
              "edit"]))
-        (when owned
+        (when (:delete links)
           (with-sep
             [:a.link {:href (encode-url "delete" {:id id :type "c"})
                       :title "Delete comment"}

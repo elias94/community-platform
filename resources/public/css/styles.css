@@ -75,7 +75,7 @@ body {
 .content {
   background-color: #fff;
   font-size: 14px;
-  padding: 15px;
+  padding: 15px 15px 25px 15px;
   border: 1px solid #d1d5db;
   border-bottom-left-radius: 6px;
   border-bottom-right-radius: 6px;
@@ -157,16 +157,26 @@ body {
 
 .news {
   margin: 7.5px 0;
+}
+.news-head {
   display: grid;
   grid-template-columns: 27px 1fr;
   grid-template-rows: auto auto;
   column-gap: 2px;
   row-gap: 0px;
 }
+.news-head-small {
+  grid-template-columns: 14px 1fr;
+}
+.news-content {
+  margin: 20px 0 0 14px;
+}
 .news-pre {
   display: flex;
   flex-direction: row;
   align-items: center;
+  justify-content: end;
+  margin-bottom: 4px;
 }
 .news-header {
   margin-bottom: 4px;
@@ -199,7 +209,7 @@ body {
 .news-link:visited {
   color: #6b7280;
 }
-.news-domain {
+.news-discussion, .news-domain {
   color: #9CA3AF;
   margin-left: 5px;
   font-size: 12px;
@@ -209,7 +219,7 @@ body {
 }
 
 .item-comment, .item-form {
-  margin: 30px 0 0 0;
+  margin: 30px 0 0 14px;
 }
 .item-comment > form, .item-form > form {
   display: inline-flex;
@@ -226,7 +236,7 @@ body {
 }
 .comment-content {
   display: grid;
-  grid-template-columns: 18px 1fr;
+  grid-template-columns: 14px 1fr;
   grid-template-rows: auto auto;
   column-gap: 2px;
   row-gap: 15px;
@@ -247,6 +257,7 @@ body {
 
 .profile {
   width: 500px;
+  margin: 5px 0 20px 14px;
 }
 .profile .grid {
   display: grid;
@@ -269,12 +280,14 @@ body {
 .input,
 .textarea,
 .form-input {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
   box-shadow: inset 0 1px 2px rgba(10, 10, 10, 0.05);
   border-color: #dbdbdb;
   border-radius: 0.375em;
   border: 1px solid #ddd;
   font-size: 14px;
   padding: 4px 7.5px;
+  min-width: 35%;
 }
 
 .help {
@@ -288,12 +301,13 @@ body {
   height: 1px;
   border-left: 4.5px solid transparent;
   border-right: 4.5px solid transparent;
-  border-bottom: 8px solid #9CA3AF;
+  border-bottom: 9px solid #9CA3AF;
   cursor: pointer;
-  margin: 0 3.5px;
+  margin: 0;
+  margin-right: 3px;
 }
 .arrow-vote:hover {
-  border-bottom: 8px solid #6b7280;
+  border-bottom: 9px solid #6b7280;
 }
 
 .separator:before {
@@ -309,7 +323,8 @@ body {
 }
 
 .section {
-  margin-bottom: 30px;
+  margin-left: 14px;
+  margin-bottom: 20px;
 }
 
 .link {
@@ -325,6 +340,11 @@ body {
 .spacer {
   margin: 20px;
   height: 1px;
+}
+
+.label {
+  margin-top: 15px;
+  margin-bottom: 10px;
 }
 
 .markdown {

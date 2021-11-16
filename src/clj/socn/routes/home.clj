@@ -5,74 +5,28 @@
             [socn.db.core :as db]
             [socn.middleware :as middleware]
             [ring.util.response :refer [redirect]]
-            [socn.routes.common :refer [default-page]]
+            [socn.routes.common :refer [default-page add-links item-links
+                                         add-links-comments
+                                         filter-items]]
             [socn.config :refer [env]]
-            [socn.session :as session]
             [socn.utils :as utils]
             [socn.controllers.core :as controller]
-            [socn.controllers.items :refer [sort-comments can-flag?
-                                            can-edit?]]))
-
-(defn- item-links
-  "Create a map of available links for display
-  the item.
-  
-  Set extend to true if inside the item page."
-  [item req extended]
-  (if (session/authenticated? req)
-    (let [user-id (session/auth :id req)
-          user    (controller/get-user user-id)]
-      {:flag   (can-flag? user)
-       :hide   true
-       :delete (and extended (can-edit? user item))
-       :vote   (controller/exists-vote user-id (:id item))})
-    {}))
-
-(defn- add-links
-  "Add links to the sequence of items."
-  [items req extended]
-  (if (session/authenticated? req)
-    (let [user-id (session/auth :id req)
-          user    (controller/get-user user-id)
-          map-fn  (fn [item]
-                    (assoc
-                     item
-                     :links
-                     {:flag   (can-flag? user)
-                      :hide   true
-                      :delete (and extended (can-edit? user item))
-                      :vote   (controller/exists-vote
-                               user-id
-                               (:id item))}))]
-      (map map-fn items))
-    items))
-
-(defn- comment-links
-  "Add links to comment recursively."
-  [comment req parent opts]
-  (let [{:keys [prev next lvl root]} opts]
-    {:parent parent
-     :prev   prev
-     :next   next
-     :edit   ()
-     :delete}))
-
-(defn- add-links-comments
-  "Add links to the sequence of comment."
-  [comments req]
-  ())
+            [socn.controllers.items :refer [sort-comments]]))
 
 (defn home-page [req]
   (let [{{:keys [site]} :params} req
         page-size (:items-per-page env)
-        items     (if (s/valid? :socn.validations/domain site)
+        items (-> (if (s/valid? :socn.validations/domain site)
                     (db/get-items-with-comments-by-domain
                      {:domain site
                       :offset 0
                       :limit  page-size})
-                    (db/get-items-with-comments {:offset 0
-                                                 :limit  page-size}))]
-    (default-page req "home" {:items (add-links items req false)})))
+                    (db/get-items-with-comments
+                     {:offset 0
+                      :limit  page-size}))
+                  (filter-items) ; filter flagged/hidden/dead items
+                  (add-links req false))]
+    (default-page req "home" {:items items})))
 
 (defn item-page [req]
   (let [{{:keys [id]} :params} req]
@@ -105,12 +59,20 @@
                    (dissoc (controller/get "user" {:id id}) :password))]
         (default-page req "user" {:user user :is-user is-user})))))
 
+(defn discussions-page [req]
+  (let [page-size (:items-per-page env)
+        items (-> (controller/get-discussions 0 page-size)
+                  (filter-items)
+                  (add-links req false))]
+    (default-page req "home" {:items items})))
+
 (defn home-routes []
   [""
    {:middleware [middleware/wrap-csrf
                  middleware/wrap-formats]}
-   ["/"       {:get home-page}]
-   ["/news"   {:get home-page}]
-   ["/item"   {:get item-page}]
-   ["/user"   {:get user-page}]])
+   ["/"            {:get home-page}]
+   ["/news"        {:get home-page}]
+   ["/item"        {:get item-page}]
+   ["/user"        {:get user-page}]
+   ["/discussions" {:get discussions-page}]])
 

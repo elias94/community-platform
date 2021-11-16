@@ -17,26 +17,31 @@
 (defn news-view [news index]
   (let [{:keys [id domain comments url links]} news]
     [:div.news
-     [:div.news-pre
-      [:span.news-index (str (+ index 1) ".")]
-      (common/upvote news)]
-     [:div.news-header
-      [:a.news-link {:href url}
-       [:h1.news-title (:title news)]]
-      [:a.news-info {:href (str "?site=" domain)}
-       [:span.news-domain (str "(" domain ")")]]]
-     [:span]
-     [:div.news-footer
-      (news-desc news)
-      (when (:flag links)
-        (with-sep
-          [:a.news-info {:href (encode-url "flag" {:id id})} "flag"]))
-      (when (:hide links)
-        (with-sep [:span "hide"]))
-      (with-sep
-        [:a.news-info {:href (encode-url "item" {:id id})
-                       :title "Open discussion"}
-         [:span (plural comments "comment")]])]]))
+     [:div.news-head
+      [:div.news-pre
+       (if (:vote links)
+         (common/upvote news))
+       [:span.news-index (str (+ index 1) ".")]]
+      [:div.news-header
+       [:a.news-link {:href (if (string? url)
+                              url
+                              (encode-url "item" {:id id}))}
+        [:h1.news-title (:title news)]]
+       (when (string? domain)
+         [:a.news-info {:href (str "?site=" domain)}
+          [:span.news-domain (str "(" domain ")")]])]
+      [:span]
+      [:div.news-footer
+       (news-desc news)
+       (when (:flag links)
+         (with-sep
+           [:a.news-info {:href (encode-url "flag" {:id id})} "flag"]))
+       (when (:hide links)
+         (with-sep [:span "hide"]))
+       (with-sep
+         [:a.news-info {:href (encode-url "item" {:id id})
+                        :title "Open discussion"}
+          [:span (plural comments "comment")]])]]]))
 
 (defn view [{:keys [items]}]
   (html

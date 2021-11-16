@@ -2,9 +2,10 @@
   (:require [clojure.string :as string]
             [hiccup.core :refer [html]]
             [socn.views.utils :refer [plural age text-age]]
+            [buddy.auth :refer [authenticated?]]
             [ring.util.anti-forgery :refer [anti-forgery-field]]))
 
-(defn view [{:keys [user is-user]}]
+(defn view [{:keys [user is-user req]}]
   (let [{:keys [id created karma about email showall]} user]
     (html
      [:div.container
@@ -23,14 +24,16 @@
             (list
              [:span "About:"]
              (if is-user
-               [:textarea.textarea {:name "about" :cols 45 :rows 5} about]
+               [:textarea.textarea {:name "about" :cols 45 :rows 5}
+                about]
                [:span about])))
           (when is-user
             (list
              [:span "Email:"]
              [:div.form-field
-              [:input {:class "input" :type "text" :name "email" :value email}]
-              [:span.form-help "Your email is private and used only for password reset."]]
+              [:input {:class "input" :type "text"
+                       :name "email" :value email}]
+              [:span.help "Your email is private and used only for password reset."]]
              [:span "Show all:"]
              [:div
               [:select {:name "showall"
@@ -43,5 +46,7 @@
          (when is-user
            [:button {:type "submit"} "Update"])]
         [:div.spacer]
-        [:a.link {:href "/change-password" :title "User submissions"} "Submission"]
-        [:a.link {:href "/change-password" :title "User comments"} "Comments"]]]])))
+        [:a.link {:href "/change-password" :title "User submissions"}
+         "Submission"]
+        [:a.link {:href "/change-password" :title "User comments"}
+         "Comments"]]]])))

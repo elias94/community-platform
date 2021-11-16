@@ -26,7 +26,7 @@ body {
   background-color: #fff;
   font-size: 14px;
 
-  padding: 15px;
+  padding: 15px 15px 25px 15px;
 
   border: 1px solid #d1d5db;
   border-bottom-left-radius: 6px;
@@ -129,16 +129,30 @@ body {
 
 .news {
   margin: 7.5px 0;
-  display: grid;
-  grid-template-columns: 27px 1fr;
-  grid-template-rows: auto auto;
-  column-gap: 2px;
-  row-gap: 0px;
+
+  &-head {
+    display: grid;
+    grid-template-columns: 27px 1fr;
+    grid-template-rows: auto auto;
+    column-gap: 2px;
+    row-gap: 0px;
+  }
+
+  &-head-small {
+    grid-template-columns: 14px 1fr;
+  }
+
+  &-content {
+    margin: 20px 0 0 14px;
+  }
 
   &-pre {
     display: flex;
     flex-direction: row;
     align-items: center;
+    justify-content: end;
+
+    margin-bottom: 4px;
   }
 
   &-header {
@@ -181,20 +195,22 @@ body {
     color: #6b7280;
   }
 
+  &-discussion,
   &-domain {
     color: $color-coolGray-400;
     margin-left: 5px;
     font-size: 12px;
+  }
 
-    &:hover {
-      color: #6b7280;
-    }
+  &-domain:hover {
+    color: #6b7280;
   }
 }
 
 .item {
-  &-comment, &-form {
-    margin: 30px 0 0 0;
+  &-comment,
+  &-form {
+    margin: 30px 0 0 14px;
 
     & > form {
       display: inline-flex;
@@ -215,7 +231,7 @@ body {
 
   &-content {
     display: grid;
-    grid-template-columns: 18px 1fr;
+    grid-template-columns: 14px 1fr;
     grid-template-rows: auto auto;
     column-gap: 2px;
     row-gap: 15px;
@@ -226,10 +242,11 @@ body {
     font-size: 12px;
   }
 
-  &-header, &-footer {
+  &-header,
+  &-footer {
     color: $color-coolGray-400;
     font-size: 12px;
-    
+
     .link {
       color: $color-coolGray-400;
       margin: 0;
@@ -240,6 +257,7 @@ body {
 
 .profile {
   width: 500px;
+  margin: 5px 0 20px 14px;
 
   .grid {
     display: grid;
@@ -268,6 +286,7 @@ body {
 .input,
 .textarea,
 .form-input {
+  font-family: $font-family;
   box-shadow: inset 0 1px 2px rgba(10, 10, 10, 0.05);
   border-color: #dbdbdb;
   border-radius: 0.375em;
@@ -275,6 +294,8 @@ body {
 
   font-size: 14px;
   padding: 4px 7.5px;
+
+  min-width: 35%;
 }
 
 .help {
@@ -289,13 +310,14 @@ body {
   border-left: 4.5px solid transparent;
   border-right: 4.5px solid transparent;
 
-  border-bottom: 8px solid $color-coolGray-400;
+  border-bottom: 9px solid $color-coolGray-400;
   cursor: pointer;
 
-  margin: 0 3.5px;
+  margin: 0;
+  margin-right: 3px;
 
   &:hover {
-    border-bottom: 8px solid #6b7280;
+    border-bottom: 9px solid #6b7280;
   }
 }
 
@@ -312,7 +334,8 @@ body {
 }
 
 .section {
-  margin-bottom: 30px;
+  margin-left: 14px;
+  margin-bottom: 20px;
 }
 
 .link {
@@ -329,6 +352,11 @@ body {
 .spacer {
   margin: 20px;
   height: 1px;
+}
+
+.label {
+  margin-top: 15px;
+  margin-bottom: 10px;
 }
 
 .markdown {

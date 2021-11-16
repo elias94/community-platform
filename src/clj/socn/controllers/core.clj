@@ -4,7 +4,8 @@
             [buddy.hashers :as hashers]
             [socn.validations]
             [socn.db.core :as db]
-            [socn.utils :as utils]))
+            [socn.utils :as utils]
+            [socn.controllers.items :refer [flag-kill-threshold]]))
 
 ;; Default hashing algorithm for password store
 (def ^:private hash-config {:alg :bcrypt+blake2b-512})
@@ -119,3 +120,26 @@
    "vote"
    {:author author
     :item   item}))
+
+(defn get-items
+  "Get items record with optional threshold."
+  [offset limit & {:keys [threshold]
+                   :or {threshold flag-kill-threshold}}]
+  (get
+   "item"
+   {:offset    offset
+    :limit     limit
+    :threshold threshold}))
+
+(defn get-flagged-count
+  [item]
+  (or (:count (db/get-flagged-count {:item item})) 0))
+
+(defn get-discussions
+  [offset limit]
+  (let [params {:offset offset :limit  limit}]
+    (if (s/valid? :item/discussion params)
+      (db/get-discussions-with-comments params)
+      (throw (ex-info
+              (str "Error during get discussion")
+              {:validation (s/explain-data :item/discussion params)})))))

@@ -1,11 +1,10 @@
 (ns socn.routes.actions
   (:require [clojure.spec.alpha :as s]
-            [spec-tools.core :as st]
             [socn.db.core :as db]
             [socn.utils :as utils]
             [socn.middleware :as middleware]
             [ring.util.response :refer [redirect]]
-            [socn.routes.common :refer [default-page]]
+            [socn.routes.common :refer [default-page item-links]]
             [socn.controllers.core :as controller]
             [socn.controllers.items :refer [can-edit? can-flag?]]
             [socn.session :as session]
@@ -35,6 +34,7 @@
                      (->> (controller/get "item" {:id (:item item)})
                           (assoc item :item))
                      item)
+             :links (item-links item req true)
              :type item-type})
           (-> (encode-url "item" {:id id})
               (redirect))))
@@ -48,8 +48,8 @@
                      {:author    user-id
                       :score     0
                       :submitted (java.util.Date.)
-                      :url       url
-                      :domain    (utils/domain-name url)
+                      :url       (when (seq? url) url)
+                      :domain    (when (seq? url) (utils/domain-name url))
                       :content   content
                       :title     title})
                     :id)]
@@ -169,6 +169,9 @@
         (controller/create! "flagged" db-map)))
     (redirect (or (:goto params) "/"))))
 
+(defn change-pass-page [req]
+  (default-page req "password" {}))
+
 ;; Actions route are restricted to authenticated users only
 (defn actions-routes []
   [""
@@ -185,5 +188,6 @@
    ["/update"      {:post update-item}]
    ["/delete"      {:get delete-item}]
    ["/update-user" {:post update-user}]
+   ["/change-password" {:get change-pass-page}]
    ;; a post flagged becomes [flagged] or [dead]
    ["/flag"        {:get flag-item}]])

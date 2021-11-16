@@ -21,6 +21,14 @@
 ;; Validation specs
 ;;=======================
 
+(defmacro or-nil
+  "A proper or condition for spec."
+  [cond]
+  `(s/or :nil nil? :value ~cond))
+
+(comment
+  (macroexpand-1 '(or-nil string?)))
+
 ;; Use them like (s/valid? :socn.validation/domain "wikipedia.org")
 (s/def ::domain (s/and string? #(re-matches re-domain %)))
 (s/def ::email  (s/and string? #(re-matches re-email %)))
@@ -60,7 +68,7 @@
 (s/def :comment/item      int?)
 (s/def :comment/content   string?)
 (s/def :comment/score     int?)
-(s/def :comment/parent    (s/or :nil nil? :parent int?))
+(s/def :comment/parent    (or-nil int?))
 (s/def :comment/submitted inst?)
 (s/def :comment/edited    inst?)
 (s/def :comment/get
@@ -85,12 +93,14 @@
 (s/def :item/id        int?)
 (s/def :item/author    string?)
 (s/def :item/score     int?)
-(s/def :item/content   (s/or :nil nil? :string string?))
+(s/def :item/content   (or-nil string?))
 (s/def :item/title     string?)
-(s/def :item/url       ::url)
-(s/def :item/domain    ::domain)
+(s/def :item/url       (or-nil ::url))
+(s/def :item/domain    (or-nil ::domain))
 (s/def :item/submitted inst?)
 (s/def :item/edited    inst?)
+(s/def :item/offset    int?)
+(s/def :item/limit     int?)
 (s/def :item/get
   (s/keys :req-un [:item/id]))
 (s/def :item/create!
@@ -109,6 +119,10 @@
             :item/edited]))
 (s/def :item/delete!
   (s/keys :req-un [:item/id]))
+(s/def :item/discussion
+  (s/keys
+   :req-un [:item/offset
+            :item/limit]))
 
 
 (s/def :vote/author    string?)

@@ -17,7 +17,7 @@ WHERE author = :author
 -- :name exists-vote? :! :1
 -- :doc check if a vote exists given author and item
 SELECT exists(
-  SELECT 1 FROM votes
+  SELECT * FROM votes
   WHERE author = :author AND item = :item
 )
 

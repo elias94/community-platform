@@ -6,19 +6,21 @@
   (html
    [:div.container
     [:div.content
-     [:h1.title "Submit"]
-     [:div.block
-      [:form {:method "post" :action "submit"}
-       (anti-forgery-field)
-       [:div.field
-        [:div.control
-         [:input {:class "input" :name "title" :placeholder "Title"}]]]
-       [:div.field
-        [:div.control
-         [:input {:class "input" :name "url" :placeholder "Url"}]]
-        [:p.help "Leave the url field blank to submit a question for discussion below."]]
-       [:label.label "or"]
-       [:div.field
-        [:div.control
-         [:textarea {:class "textarea" :name "content" :placeholder "Question" :rows "5" :cols "49"}]]]
-       [:button {:class "button is-info" :name "submit"} "Submit"]]]]]))
+     [:section.section
+      [:h1.title "Submit"]
+      [:div.block
+       [:form.form {:method "post" :action "submit"}
+        (anti-forgery-field)
+        [:div.form-field
+         [:div.control
+          [:input.form-input {:name "title" :placeholder "Title"}]]]
+        [:div.form-field
+         [:div.control
+          [:input.form-input {:name "url" :placeholder "Url"}]]
+         [:p.help
+          "Leave the url field blank to submit a question for discussion below."]]
+        [:div.label "or"]
+        [:div.form-field
+         [:div.control
+          [:textarea.textara {:class "textarea" :name "content" :placeholder "Question" :rows "5" :cols "49"}]]]
+        [:button {:class "button is-info" :name "submit"} "Submit"]]]]]]))
