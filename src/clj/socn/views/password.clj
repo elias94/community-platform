@@ -7,6 +7,7 @@
    [:div.container
     [:div.content
      [:div.profile
+      [:h1.title "Change password"]
       [:form.form {:method "post" :action "change-password"}
        [:div.form-field
         [:div.control
