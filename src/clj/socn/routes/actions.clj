@@ -172,6 +172,9 @@
 (defn change-pass-page [req]
   (default-page req "password" {}))
 
+(defn change-password [{:keys [params] :as req}]
+  (let []))
+
 ;; Actions route are restricted to authenticated users only
 (defn actions-routes []
   [""
@@ -188,6 +191,7 @@
    ["/update"      {:post update-item}]
    ["/delete"      {:get delete-item}]
    ["/update-user" {:post update-user}]
-   ["/change-password" {:get change-pass-page}]
+   ["/change-password" {:get  change-pass-page
+                        :post change-password}]
    ;; a post flagged becomes [flagged] or [dead]
    ["/flag"        {:get flag-item}]])

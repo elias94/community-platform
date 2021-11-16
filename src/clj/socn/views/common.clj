@@ -24,13 +24,18 @@
   "Form to add a comment."
   [item action button-name]
   [:div.item-form
-   [:form {:method "post" :action action}
+   [:form.form {:method "post" :action action}
     (anti-forgery-field)
-    [:textarea.textarea {:name "content" :cols 49 :rows 5}
+    [:textarea.textarea.textarea-full
+     {:name "content" :cols 49 :rows 5
+      :placeholder "Insert your comment"
+      :title "Be nice :)"}
      (when *comment-form-content*
        (:content item))]
-    markdown-symbol
-    [:div
+    [:input.input {:name "source" :placeholder "Add references"
+                   :title "Document your sources properly!"}]
+    ;; markdown-symbol
+    [:div.form-button
      [:button {:type "submit"} button-name]]]])
 
 (defn upvote

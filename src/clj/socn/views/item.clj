@@ -9,12 +9,11 @@
   (let [{:keys [id author content submitted score links]} comment]
     [:div.comment-wrapper
      [:div.comment-indent
-      {:style (str "width: " (* 25 lvl) "px")}]
+      {:style (str "width: " (* 40 lvl) "px")}]
      [:div.comment {:id id}
       [:div.comment-content
-       (if (:vote links)
-         (common/upvote comment)
-         [:span "*"])
+       [:div.comment-toggle
+        [:div "[-]"]]
        [:div.comment-header
         [:span (str (plural score "point")
                     " by " author " "
@@ -44,6 +43,9 @@
       [:div.comment-content
        [:span]
        [:div
+        (if (:vote links)
+          (common/upvote comment)
+          [:span "*"])
         [:a.link {:href (encode-url "reply" {:id id})}
          "reply"]]]]]))
 

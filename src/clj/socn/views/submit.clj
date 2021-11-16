@@ -13,10 +13,12 @@
         (anti-forgery-field)
         [:div.form-field
          [:div.control
-          [:input.form-input {:name "title" :placeholder "Title"}]]]
+          [:input.form-input {:name "title" :placeholder "Title"
+                              :maxlength "80"}]]]
         [:div.form-field
          [:div.control
-          [:input.form-input {:name "url" :placeholder "Url"}]]
+          [:input.form-input {:name "url" :placeholder "Url"
+                              :maxlength "65535"}]]
          [:p.help
           "Leave the url field blank to submit a question for discussion below."]]
         [:div.label "or"]
@@ -24,3 +26,4 @@
          [:div.control
           [:textarea.textara {:class "textarea" :name "content" :placeholder "Question" :rows "5" :cols "49"}]]]
         [:button {:class "button is-info" :name "submit"} "Submit"]]]]]]))
+  
