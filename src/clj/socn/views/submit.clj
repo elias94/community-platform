@@ -20,10 +20,12 @@
           [:input.form-input {:name "url" :placeholder "Url"
                               :maxlength "65535"}]]
          [:p.help
-          "Leave the url field blank to submit a question for discussion below."]]
+          "Leave the url field blank to submit a discussion below."]]
         [:div.label "or"]
         [:div.form-field
          [:div.control
-          [:textarea.textara {:class "textarea" :name "content" :placeholder "Question" :rows "5" :cols "49"}]]]
+          [:textarea.textara {:class "textarea" :name "content"
+                              :placeholder "Write a question or open a discussion"
+                              :rows "5" :cols "49"}]]]
         [:button {:class "button is-info" :name "submit"} "Submit"]]]]]]))
   

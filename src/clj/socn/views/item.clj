@@ -5,22 +5,25 @@
             [socn.views.common :as common]
             [buddy.auth :refer [authenticated?]]))
 
+(def get-parent (comp :id :parent))
+
 (defn comment-view [comment req lvl]
   (let [{:keys [id author content submitted score links]} comment]
     [:div.comment-wrapper
      [:div.comment-indent
       {:style (str "width: " (* 40 lvl) "px")}]
-     [:div.comment {:id id}
+     [:div.comment {:id id :indent lvl
+                    :parent (get-parent links)}
       [:div.comment-content
        [:div.comment-toggle
-        [:div "[-]"]]
+        [:div {:onclick "return toggle(event, this)"} "[-]"]]
        [:div.comment-header
         [:span (str (plural score "point")
                     " by " author " "
                     (text-age (age submitted :minutes)))]
         (when (:parent links)
           (with-sep
-            [:a.link {:href (str "#" (:parent links))} "parent"]))
+            [:a.link {:href (str "#" (get-parent links))} "parent"]))
         (when (:prev links)
           (with-sep
             [:a.link {:href (str "#" (:prev links))} "prev"]))

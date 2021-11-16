@@ -28,12 +28,10 @@
     (anti-forgery-field)
     [:textarea.textarea.textarea-full
      {:name "content" :cols 49 :rows 5
-      :placeholder "Insert your comment"
+      :placeholder "Insert your comment\nYou can use Markdown sintax."
       :title "Be nice :)"}
      (when *comment-form-content*
        (:content item))]
-    [:input.input {:name "source" :placeholder "Add references"
-                   :title "Document your sources properly!"}]
     ;; markdown-symbol
     [:div.form-button
      [:button {:type "submit"} button-name]]]])
