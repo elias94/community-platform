@@ -56,8 +56,6 @@
   (and (not (author? user item))
        (not (controller/exists-vote (:id user) (:id item)))))
 
-(controller/exists-vote "demo" 29)
-
 (defn item-links
   "Create a map of available links for display
   the item.

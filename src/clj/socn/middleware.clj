@@ -22,9 +22,10 @@
       (handler req)
       (catch Throwable t
         (log/error t (.getMessage t))
-        (error-page {:status 500
-                     :title "Something very bad has happened!"
-                     :message "We've dispatched a team of highly trained gnomes to take care of the problem. for you"})))))
+        (error-page
+         {:status 500
+          :title "Something very bad has happened!"
+          :message "We've dispatched a team of highly trained gnomes to take care of the problem. for you"})))))
 
 (defn wrap-csrf [handler]
   (wrap-anti-forgery
@@ -52,10 +53,11 @@
   (-> ((:middleware defaults) handler)
       wrap-flash
       (wrap-authentication (session-backend))
-      (wrap-session {:timeout      0
-                     :cookie-name  "user"
-                     :cookie-attrs {:http-only true
-                                    :expires "Mon, 13 Jan 2042 00:00:00 GMT"}})
+      (wrap-session
+       {:timeout      0
+        :cookie-name  "user"
+        :cookie-attrs {:http-only true
+                       :expires "Mon, 13 Jan 2042 00:00:00 GMT"}})
       (wrap-defaults
        (-> site-defaults
            (assoc-in [:security :anti-forgery] false)
