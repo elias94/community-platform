@@ -41,7 +41,7 @@
 (s/def :user/id       (s/and string? #(<= 2 (count %) 18)))
 (s/def :user/email    (s/or :empty empty? :email ::email))
 (s/def :user/about    string?)
-(s/def :user/password string?)
+(s/def :user/password (s/and string? #(<= 4 (count %))))
 (s/def :user/created  inst?)
 (s/def :user/karma    pos-int?)
 (s/def :user/showall  boolean?)

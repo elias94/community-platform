@@ -1,5 +1,6 @@
 (ns socn.routes.common
   (:require [clojure.string :as string]
+            [ring.util.response :refer [redirect]]
             [socn.layout :as layout]
             [socn.views.common :as common]
             [socn.views.login :as login]
@@ -10,6 +11,7 @@
             [socn.views.reply :as reply]
             [socn.views.submit :as submit]
             [socn.views.password :as password]
+            [socn.views.error :as error]
             [socn.session :as session]
             [socn.controllers.items :refer [can-flag? can-edit? author?
                                             flag-kill-threshold]]
@@ -28,7 +30,8 @@
                       "user"     (apply user/view   [ext-args])
                       "edit"     (apply edit/view   [ext-args])
                       "reply"    (apply reply/view  [ext-args])
-                      "password" (apply password/view [ext-args]))]
+                      "password" (apply password/view [ext-args])
+                      "error"    (apply error/view  [ext-args]))]
     (when view-render
       (string/join [(common/navbar req page-name)
                     view-render
@@ -40,6 +43,12 @@
   (layout/render-page
    "home.html"
    {:content (apply with-template req route [args])}))
+
+(defn error-page
+  "Redirect to error page with the message body."
+  [error]
+  (-> (redirect "/error")
+      (assoc :body error)))
 
 (defn vote-link
   "Return true if vote link should be visible."

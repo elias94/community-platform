@@ -16,7 +16,7 @@
                              :placeholder "Current password"}]]]
        [:div.form-field
         [:div.control
-         [:input.form-input {:name "current"
+         [:input.form-input {:name "new"
                              :type "password"
                              :placeholder "New password"}]]]
        (anti-forgery-field)

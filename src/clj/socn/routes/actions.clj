@@ -4,6 +4,7 @@
             [socn.utils :as utils]
             [socn.middleware :as middleware]
             [ring.util.response :refer [redirect]]
+            [buddy.hashers :as hashers]
             [socn.routes.common :refer [default-page item-links]]
             [socn.controllers.core :as controller]
             [socn.controllers.items :refer [can-edit? can-flag?]]
@@ -169,11 +170,28 @@
         (controller/create! "flagged" db-map)))
     (redirect (or (:goto params) "/"))))
 
-(defn change-pass-page [req]
+(defn handle-logout
+  "Clear the user session."
+  [_]
+  (-> (redirect "/")
+      (assoc :session nil)))
+
+(defn password-page [req]
   (default-page req "password" {}))
 
 (defn change-password [{:keys [params] :as req}]
-  (let []))
+  (let [{:keys [current new]} params
+        user-id (session/auth :id req)
+        user    (controller/get-user user-id)]
+    (if (and (s/valid? :user/password current)
+             (s/valid? :user/password new)
+             (hashers/verify current (:password user)))
+      (try
+        (db/update-user-password! {:password new})
+        (redirect (str "/user?id=" user-id))
+        (catch Exception _
+          (throw (Exception. "Error updating password."))))
+      10)))
 
 ;; Actions route are restricted to authenticated users only
 (defn actions-routes []
@@ -181,17 +199,18 @@
    {:middleware [middleware/wrap-csrf
                  middleware/wrap-formats
                  middleware/wrap-restricted]}
-   ["/submit"      {:get submit-page
+   ["/submit"      {:get  submit-page
                     :post submit-item}]
    ["/comment"     {:post save-comment}]
-   ["/reply"       {:get reply-page
+   ["/reply"       {:get  reply-page
                     :post save-comment-reply}]
-   ["/vote"        {:get save-vote}]
-   ["/edit"        {:get edit-page}]
+   ["/vote"        {:get  save-vote}]
+   ["/edit"        {:get  edit-page}]
    ["/update"      {:post update-item}]
-   ["/delete"      {:get delete-item}]
+   ["/delete"      {:get  delete-item}]
    ["/update-user" {:post update-user}]
-   ["/change-password" {:get  change-pass-page
+   ["/logout"      {:get   handle-logout}]
+   ["/change-password" {:get  password-page
                         :post change-password}]
    ;; a post flagged becomes [flagged] or [dead]
    ["/flag"        {:get flag-item}]])

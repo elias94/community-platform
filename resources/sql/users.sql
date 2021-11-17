@@ -8,7 +8,7 @@ RETURNING id
 -- :name update-user-password! :! :n
 -- :doc updates user password
 UPDATE users
-SET password = :password
+SET "password" = :password
 WHERE id = :id
 
 -- :name update-user-email! :! :n

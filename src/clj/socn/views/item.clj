@@ -63,7 +63,7 @@
   (html
    [:div.container
     [:div.content
-     (item-view item links (count comments))
+    ;;  (common/item-view item links (count comments))
      (when (authenticated? req)
        (common/comment-form
         item

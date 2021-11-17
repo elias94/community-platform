@@ -1,5 +1,5 @@
 (ns socn.routes.auth
-  (:require [socn.db.core :as db]
+  (:require [clojure.spec.alpha :as s]
             [socn.middleware :as middleware]
             [ring.util.response :refer [redirect]]
             [socn.routes.common :refer [default-page]]
@@ -19,7 +19,7 @@
   (let [{:keys [username password]} params]
     (if (and (seq username) (seq password))
       ;; login and redirect
-      (let [user (db/get-user {:id username})]
+      (let [user (controller/get-user username)]
         (if (and user (hashers/verify password (:password user)))
           (-> (redirect "/")
               (assoc :session (assoc session :identity (dissoc user :password)))) ; set-user!
@@ -40,16 +40,13 @@
       (not (<= 2 (count username) 18))
       (default-page req "login" {:error-signup "Wrong username length."})
 
+      (not (s/valid? :user/password password))
+      (default-page req "login" {:error-signup "Password min 4 chars."})
+
       :else ; create the new record and redirect to homepage
       (let [user (controller/create-user! {:id username :password password})]
-          (-> (redirect "/")
-              (assoc :session (assoc session :identity (dissoc user :password))))))))
-
-(defn handle-logout
-  "Clear the user session."
-  [_]
-  (-> (redirect "/")
-      (assoc :session nil)))
+        (-> (redirect "/")
+            (assoc :session (assoc session :identity (dissoc user :password))))))))
 
 (defn auth-routes []
   [""
@@ -57,5 +54,4 @@
                  middleware/wrap-formats]}
    ["/login"  {:get  login-page
                :post handle-login}]
-   ["/signup" {:post handle-signup}]
-   ["/logout" {:get  handle-logout}]])
+   ["/signup" {:post handle-signup}]])
