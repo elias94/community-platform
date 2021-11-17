@@ -70,6 +70,10 @@
   (let [{:keys [params]} req]
    (default-page req "error" {:error (:error params)})))
 
+(defn about-page [req]
+  (let [{:keys [params]} req]
+    (default-page req "about" {})))
+
 (defn home-routes []
   [""
    {:middleware [middleware/wrap-csrf
@@ -79,5 +83,6 @@
    ["/item"        {:get item-page}]
    ["/user"        {:get user-page}]
    ["/discussions" {:get discussions-page}]
-   ["/error"       {:get error-page}]])
+   ["/error"       {:get error-page}]
+   ["/about"       {:get about-page}]])
 

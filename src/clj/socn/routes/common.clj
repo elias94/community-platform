@@ -12,6 +12,7 @@
             [socn.views.submit :as submit]
             [socn.views.password :as password]
             [socn.views.error :as error]
+            [socn.views.about :as about]
             [socn.session :as session]
             [socn.controllers.items :refer [can-flag? can-edit? author?
                                             flag-kill-threshold]]
@@ -31,7 +32,8 @@
                       "edit"     (apply edit/view   [ext-args])
                       "reply"    (apply reply/view  [ext-args])
                       "password" (apply password/view [ext-args])
-                      "error"    (apply error/view  [ext-args]))]
+                      "error"    (apply error/view  [ext-args])
+                      "about"    (apply about/view  [ext-args]))]
     (when view-render
       (string/join [(common/navbar req page-name)
                     view-render
